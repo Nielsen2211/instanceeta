@@ -61,6 +61,11 @@ local LOC = {
     colLevel = "Level", colRested = "Rested", colGoldC = "Gold", colDur = "Durability", colBags = "Bags free", colSeen = "Last seen",
     restedState = "Rested state", resting = "Resting", notResting = "Not resting", profs = "Professions", totalGold = "Total gold",
     online = "Online", compact = "Compact window", posted = "Stats posted to party.",
+    legBG = "Battleground", showBG = "Battlegrounds", bgRun = "Battleground: %s. Good luck!", honor = "Honor", hks = "Honorable kills",
+    won = "Won", lost = "Lost", result = "Result", bgTotal = "All your %s", bgRecord = "%d won, %d lost", honorHr = "Honor per hour",
+    resetMsg = "Tell the group about resets", resetSaid = "%s has been reset.", cds = "Cooldowns", cdReady = "Ready", colCD = "Cooldowns",
+    charsFoot = "Shift right-click a character to remove it", removed = "Removed %s and %d runs.", cantRemove = "You can not remove the character you are playing.",
+    bgLine = "%s %s in %s: %s honor, %d HKs", bgLineNoRes = "%s in %s: %s honor, %d HKs", avgHonor = "Honor per game",
   },
   da = {
     hm = "%dt %02dm", dh = "%dd %dt",
@@ -100,6 +105,11 @@ local LOC = {
     colLevel = "Level", colRested = "Rested", colGoldC = "Guld", colDur = "Holdbarhed", colBags = "Ledige pladser", colSeen = "Sidst set",
     restedState = "Rested", resting = "Hviler", notResting = "Hviler ikke", profs = "Erhverv", totalGold = "Guld i alt",
     online = "Online", compact = "Lille vindue", posted = "Opsummering sendt til party.",
+    legBG = "Battleground", showBG = "Battlegrounds", bgRun = "Battleground: %s. Held og lykke!", honor = "Honor", hks = "Honorable kills",
+    won = "Vundet", lost = "Tabt", result = "Resultat", bgTotal = "Alle dine %s", bgRecord = "%d vundet, %d tabt", honorHr = "Honor i timen",
+    resetMsg = "Sig til gruppen ved nulstilling", resetSaid = "%s er nulstillet.", cds = "Cooldowns", cdReady = "Klar", colCD = "Cooldowns",
+    charsFoot = "Shift højreklik en karakter for at fjerne den", removed = "Fjernede %s og %d runs.", cantRemove = "Du kan ikke fjerne den karakter du spiller.",
+    bgLine = "%s %s på %s: %s honor, %d HKs", bgLineNoRes = "%s på %s: %s honor, %d HKs", avgHonor = "Honor pr. kamp",
   },
 }
 local function T(k) return (LOC[(DB and DB.lang) or "en"] or LOC.en)[k] or LOC.en[k] or k end
@@ -109,7 +119,7 @@ local function updateLabels() for _, x in ipairs(labels) do x[1]:SetText(T(x[2])
 
 -- GAET: Forever har en graense paa 5 instances i timen og ingen graense pr. doegn. Begge kan aendres i indstillingerne.
 local defaults = {
-  lang = "en", hidden = true, logAlts = false, locked = false, showMinimap = true, mmAngle = 200, recentN = 5,
+  lang = "en", hidden = true, logAlts = false, logBG = true, resetMsg = true, locked = false, showMinimap = true, mmAngle = 200, recentN = 5,
   enterMsg = true, leaveMsg = true, groupMsg = false, tradeMsg = true, freeMsg = true,
   countRaids = false, accountWide = false, hourLimit = 5, dayLimit = 0,
 }
@@ -183,7 +193,7 @@ local function newId() DB.nextId = (DB.nextId or 0) + 1; return DB.nextId end
 local function charRuns(all)
   local me, list = charKey(), {}
   for _, r in ipairs(DB.runs) do
-    if all or r.char == me then list[#list + 1] = r end
+    if (all or r.char == me) and (DB.logBG or r.kind ~= "pvp") then list[#list + 1] = r end
   end
   return list
 end
@@ -383,6 +393,27 @@ local function runTip(owner, r, anchor)
       if (x.get or 0) > 0 then GameTooltip:AddLine(string.format(T("got"), money(x.get), x.who), 0.36, 1, 0.48) end
     end
   end
+  if r.kind == "pvp" then
+    GameTooltip:AddLine(" ")
+    if r.result then line(T("result"), T(r.result), r.result == "won" and GREEN or RED) end
+    line(T("honor"), num(r.honor), RED)
+    if (r.honor or 0) > 0 and runTime(r) >= 60 then line(T("honorHr"), num(r.honor / runTime(r) * 3600), RED) end
+    line(T("hks"), tostring(r.hks or 0))
+    -- samlet for denne battleground
+    local w, l, n, hon, t = 0, 0, 0, 0, 0
+    for _, x in ipairs(DB.runs) do
+      if x.kind == "pvp" and x.map == r.map and x.char == r.char then
+        n = n + 1; hon = hon + (x.honor or 0); t = t + runTime(x)
+        if x.result == "won" then w = w + 1 elseif x.result == "lost" then l = l + 1 end
+      end
+    end
+    if n > 1 then
+      GameTooltip:AddLine(" "); GameTooltip:AddLine(string.format(T("bgTotal"), r.name or "?"), 1, 0.82, 0.4)
+      line(T("result"), string.format(T("bgRecord"), w, l))
+      line(T("avgHonor"), num(hon / n), RED)
+      if t >= 60 then line(T("honorHr"), num(hon / t * 3600), RED) end
+    end
+  end
   local left, kind = lockLeft(r)
   if left then
     GameTooltip:AddLine(" ")
@@ -514,7 +545,11 @@ local function refresh()
     local xr = xpRate(cur)
     y = row(y, {kind = "small", title = T("xp"), value = num(cur.xp) .. (xr and ("  ·  " .. num(xr) .. T("perHr")) or ""), vc = BLUE})
     y = row(y, {kind = "small", title = T("gold"), value = money(cur.money), vc = GOLD})
-    y = row(y, {kind = "small", title = T("kills"), value = tostring(cur.kills or 0)})
+    if cur.kind == "pvp" then
+      y = row(y, {kind = "small", title = T("honor"), value = num(cur.honor) .. "  ·  " .. (cur.hks or 0) .. " HKs", vc = RED})
+    else
+      y = row(y, {kind = "small", title = T("kills"), value = tostring(cur.kills or 0)})
+    end
   end
 
   if (DB.recentN or 0) > 0 then
@@ -541,7 +576,7 @@ end
 
 -- ---------- vinduer med lister (log, handler, lockouts, karakterer) ----------
 local postStats   -- saettes laengere nede
-local AGE_HOUR, AGE_DAY, AGE_OLD, RAIDC, ALTC = GREEN, GOLD, RED, {0.75, 0.55, 1}, {0.62, 0.82, 1}
+local AGE_HOUR, AGE_DAY, AGE_OLD, RAIDC, ALTC, BGC = GREEN, GOLD, RED, {0.75, 0.55, 1}, {0.62, 0.82, 1}, {1, 0.45, 0.45}
 
 local function classHex(class)
   local cc = RAID_CLASS_COLORS and class and RAID_CLASS_COLORS[class]
@@ -613,10 +648,10 @@ local function listWindow(name, titleKey, w, h, top, nRows, cols)
 end
 
 -- ---------- instance loggen (hovedvinduet, som i Nova) ----------
-local LW, LTOP, ROWS = 640, -164, 14
+local LW, LTOP, ROWS = 680, -164, 14
 local L = listWindow("InstanceETALog", nil, LW, -LTOP + 16 + ROWS * 22 + 40, LTOP, ROWS, {
-  {18, 22, "RIGHT", nil}, {46, 200, "LEFT", "colInst"}, {250, 104, "RIGHT", "colWhen"}, {358, 54, "RIGHT", "colTime"},
-  {416, 58, "RIGHT", "colXP"}, {478, 70, "RIGHT", "colGold"}, {552, 72, "RIGHT", "colLock"} })
+  {18, 22, "RIGHT", nil}, {46, 240, "LEFT", "colInst"}, {290, 104, "RIGHT", "colWhen"}, {398, 54, "RIGHT", "colTime"},
+  {456, 58, "RIGHT", "colXP"}, {518, 70, "RIGHT", "colGold"}, {592, 72, "RIGHT", "colLock"} })
 L.title:SetText("|cffffffffInstance|r|cffffd24aETA|r")
 label(L.empty, "logEmpty"); label(L.foot, "logHint")
 
@@ -649,15 +684,21 @@ local altsOff = altsBtn:CreateTexture(nil, "ARTWORK"); altsOff:SetAllPoints(); a
 local altsOn = altsBtn:CreateTexture(nil, "ARTWORK"); altsOn:SetAllPoints(); altsOn:SetTexture(TEX .. "ToggleOn"); altsOn:SetTexCoord(0, 1, 0, 36 / 64)
 local altsT = fs(L, F_SEMI, 12); altsT:SetPoint("RIGHT", altsBtn, "LEFT", -8, 0); altsT:SetTextColor(0.85, 0.87, 0.92); label(altsT, "showAlts")
 altsBtn:SetScript("OnClick", function() DB.logAlts = not DB.logAlts; L.offset = 0; L.refresh() end)
+local bgBtn = CreateFrame("CheckButton", nil, L)
+bgBtn:SetSize(32, 18); bgBtn:SetPoint("RIGHT", altsT, "LEFT", -18, 0)
+local bgOff = bgBtn:CreateTexture(nil, "ARTWORK"); bgOff:SetAllPoints(); bgOff:SetTexture(TEX .. "ToggleOff"); bgOff:SetTexCoord(0, 1, 0, 36 / 64)
+local bgOn = bgBtn:CreateTexture(nil, "ARTWORK"); bgOn:SetAllPoints(); bgOn:SetTexture(TEX .. "ToggleOn"); bgOn:SetTexCoord(0, 1, 0, 36 / 64)
+local bgT = fs(L, F_SEMI, 12); bgT:SetPoint("RIGHT", bgBtn, "LEFT", -8, 0); bgT:SetTextColor(0.85, 0.87, 0.92); label(bgT, "showBG")
+bgBtn:SetScript("OnClick", function() DB.logBG = not DB.logBG; L.offset = 0; L.refresh(); refresh() end)
 
 -- forklaring af farverne
 do
   local x = 18
-  for _, d in ipairs({{AGE_HOUR, "legHour"}, {AGE_DAY, "legDay"}, {AGE_OLD, "legOld"}, {RAIDC, "legRaid"}, {ALTC, "legAlts"}}) do
+  for _, d in ipairs({{AGE_HOUR, "legHour"}, {AGE_DAY, "legDay"}, {AGE_OLD, "legOld"}, {RAIDC, "legRaid"}, {BGC, "legBG"}, {ALTC, "legAlts"}}) do
     local dot = L:CreateTexture(nil, "ARTWORK"); dot:SetSize(7, 7); dot:SetTexture(TEX .. "Dot"); dot:SetPoint("TOPLEFT", x, -138)
     dot:SetVertexColor(d[1][1], d[1][2], d[1][3])
     local t = fs(L, F_SEMI, 10); t:SetPoint("LEFT", dot, "RIGHT", 5, 0); t:SetTextColor(0.62, 0.65, 0.7); label(t, d[2])
-    x = x + 104
+    x = x + 100
   end
 end
 local sep = L:CreateTexture(nil, "ARTWORK"); sep:SetPoint("TOPLEFT", 14, -152); sep:SetPoint("TOPRIGHT", -14, -152); sep:SetHeight(1); sep:SetColorTexture(1, 1, 1, 0.06)
@@ -680,21 +721,27 @@ L.refresh = function()
   local nt, nc = nextFreeText(nextAt)
   stats[3].v:SetText(nt); col(stats[3].v, nc); bar(stats[3], nil)
   altsOn:SetShown(DB.logAlts and true or false); altsOff:SetShown(not DB.logAlts)
+  bgOn:SetShown(DB.logBG and true or false); bgOff:SetShown(not DB.logBG)
   -- runs
   local items = {}
   for i, r in ipairs(charRuns(DB.logAlts)) do
     local mine = r.char == charKey()
     local raid = r.kind == "raid"
+    local bg = r.kind == "pvp"
     local ac = ageColor(r)
     local name = (r.name or "?")
     if raid then name = name .. "  " .. hex(RAIDC) .. "R|r" end
+    if bg then
+      name = name .. "  " .. hex(BGC) .. "BG|r"
+      if r.result then name = name .. "  " .. hex(r.result == "won" and GREEN or RED) .. T(r.result) .. "|r" end
+    end
     if not mine then name = classHex(DB.chars[r.char] and DB.chars[r.char].class) .. shortName(r.char) .. "|r  " .. name end
     local when = r.leave and string.format(T("leftAgo"), dur(now() - r.leave)) or T("stillIn")
     local left, kind = lockLeft(r)
     items[#items + 1] = {
-      dot = (not mine) and ALTC or (raid and RAIDC or ac),
-      cells = { tostring(i), name, when, dur(runTime(r)), num(r.xp), money(r.money), left and dur(left) or "" },
-      colors = { GREY, {0.88, 0.9, 0.94}, ac, WHITE, BLUE, GOLD, left and (kind == "h" and ORANGE or GOLD) or GREY },
+      dot = (not mine) and ALTC or (raid and RAIDC or (bg and BGC or ac)),
+      cells = { tostring(i), name, when, dur(runTime(r)), bg and (num(r.honor) .. " H") or num(r.xp), money(r.money), left and dur(left) or "" },
+      colors = { GREY, {0.88, 0.9, 0.94}, ac, WHITE, bg and BGC or BLUE, GOLD, left and (kind == "h" and ORANGE or GOLD) or GREY },
       tip = function(self) runTip(self, r) end,
       click = function(_, btn)
         if btn == "RightButton" and IsShiftKeyDown() then
@@ -751,9 +798,19 @@ KWin.refresh = function()
 end
 
 -- ---------- dine karakterer: rested XP, guld, holdbarhed, tasker, erhverv ----------
-local CWin = listWindow("InstanceETAChars", "charsTitle", 640, 440, -50, 14, {
+local CWin = listWindow("InstanceETAChars", "charsTitle", 780, 440, -50, 14, {
   {18, 128, "LEFT", "colChar"}, {150, 40, "RIGHT", "colLevel"}, {194, 108, "RIGHT", "colRested"}, {306, 92, "RIGHT", "colGoldC"},
-  {402, 70, "RIGHT", "colDur"}, {476, 60, "RIGHT", "colBags"}, {540, 84, "RIGHT", "colSeen"} })
+  {402, 70, "RIGHT", "colDur"}, {476, 60, "RIGHT", "colBags"}, {540, 84, "RIGHT", "colSeen"}, {630, 134, "RIGHT", "colCD"} })
+-- den cooldown der er klar, eller den der bliver klar foerst
+local function cdSummary(c)
+  local best
+  for _, x in ipairs(c.cds or {}) do
+    if x.readyAt <= now() then return T("cdReady") .. ": " .. x.name, GREEN end
+    if not best or x.readyAt < best.readyAt then best = x end
+  end
+  if best then return best.name .. " " .. dur(best.readyAt - now()), GREY end
+  return "", GREY
+end
 local function restedNow(c)
   -- rested XP vokser mens du er logget ud: 5% af et level pr. 8 timer paa et kro/i en by, ellers en fjerdedel. Hoejst 150%.
   if not c.max or c.max <= 0 or (c.level or 0) >= (MAX_PLAYER_LEVEL or 60) then return nil end
@@ -775,11 +832,21 @@ CWin.refresh = function()
     local rn = restedNow(c)
     local rested = rn and string.format("%d%%  ·  %.1f", math.floor(rn / c.max * 100 + 0.5), rn / c.max * 20) or "-"
     local online = key == charKey()
+    local cdText, cdCol = cdSummary(c)
     items[#items + 1] = {
       dot = c.resting and GREEN or GREY,
+      click = function(_, btn)
+        if btn ~= "RightButton" or not IsShiftKeyDown() then return end
+        if online then say(T("cantRemove")); return end
+        local n = 0
+        for i = #DB.runs, 1, -1 do if DB.runs[i].char == key then table.remove(DB.runs, i); n = n + 1 end end
+        DB.chars[key] = nil
+        say(string.format(T("removed"), key, n))
+        GameTooltip:Hide(); L.refresh(); CWin.refresh(); refresh()
+      end,
       cells = { classHex(c.class) .. shortName(key) .. "|r", tostring(c.level or "?"), rested, money(c.money or 0),
-        c.dur and (c.dur .. "%") or "", c.bags and tostring(c.bags) or "", online and T("online") or (c.seen and string.format(T("ago"), dur(now() - c.seen)) or "") },
-      colors = { WHITE, WHITE, BLUE, GOLD, (c.dur and c.dur < 30) and RED or WHITE, (c.bags and c.bags < 4) and ORANGE or WHITE, online and GREEN or GREY },
+        c.dur and (c.dur .. "%") or "", c.bags and tostring(c.bags) or "", online and T("online") or (c.seen and string.format(T("ago"), dur(now() - c.seen)) or ""), cdText },
+      colors = { WHITE, WHITE, BLUE, GOLD, (c.dur and c.dur < 30) and RED or WHITE, (c.bags and c.bags < 4) and ORANGE or WHITE, online and GREEN or GREY, cdCol },
       tip = function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:AddLine(key, 1, 0.82, 0.3)
@@ -788,6 +855,13 @@ CWin.refresh = function()
         if c.profs and #c.profs > 0 then
           GameTooltip:AddLine(" "); GameTooltip:AddLine(T("profs"), 1, 0.82, 0.4)
           for _, p in ipairs(c.profs) do GameTooltip:AddDoubleLine(p.name, p.rank .. " / " .. p.max, 0.85, 0.87, 0.92, 1, 1, 1) end
+        end
+        if c.cds and #c.cds > 0 then
+          GameTooltip:AddLine(" "); GameTooltip:AddLine(T("cds"), 1, 0.82, 0.4)
+          for _, x in ipairs(c.cds) do
+            local ready = x.readyAt <= now()
+            GameTooltip:AddDoubleLine(x.name, ready and T("cdReady") or dur(x.readyAt - now()), 0.85, 0.87, 0.92, ready and 0.36 or 0.55, ready and 1 or 0.58, ready and 0.48 or 0.64)
+          end
         end
         local any
         for _, s in ipairs(c.saved or {}) do
@@ -801,7 +875,7 @@ CWin.refresh = function()
     }
   end
   CWin.fill(items)
-  CWin.foot:SetText(T("totalGold") .. ":  " .. money(total))
+  CWin.foot:SetText(T("totalGold") .. ":  " .. money(total) .. "   |cff6b7280·   " .. T("charsFoot") .. "|r")
 end
 
 lbtn[1]:SetScript("OnClick", function() local s = _G.InstanceETASettings; s:SetShown(not s:IsShown()) end)
@@ -891,6 +965,7 @@ toggle(R0, -100, "leaveMsg", "leaveMsg")
 toggle(R0, -126, "groupMsg", "groupMsg")
 toggle(R0, -152, "tradeMsg", "tradeMsg")
 toggle(R0, -178, "freeMsg", "freeMsg")
+toggle(R0, -204, "resetMsg", "resetMsg")
 toggle(R0, -266, "countRaids", "countRaids")
 toggle(R0, -292, "accountWide", "accountWide")
 
@@ -1004,6 +1079,10 @@ local function updateGroup()
 end
 
 local function statsText(r, plain)
+  if r.kind == "pvp" then
+    if r.result then return string.format(T("bgLine"), r.name or "?", T(r.result):lower(), dur(runTime(r)), num(r.honor), r.hks or 0) end
+    return string.format(T("bgLineNoRes"), r.name or "?", dur(runTime(r)), num(r.honor), r.hks or 0)
+  end
   local xr = xpRate(r)
   local s = string.format(T("statsLine"), r.name or "?", dur(runTime(r)), num(r.xp), money(r.money, plain), r.kills or 0)
   if xr then s = s .. ", " .. num(xr) .. " XP" .. T("perHr") end
@@ -1028,7 +1107,7 @@ local function closeRun(quiet)
   r.died = UnitIsDeadOrGhost and UnitIsDeadOrGhost("player") or nil
   cur = nil; DB.charCur[charKey()] = nil
   wipe(seenZone)
-  local active = (r.xp or 0) > 0 or (r.money or 0) > 0 or (r.kills or 0) > 0
+  local active = (r.xp or 0) > 0 or (r.money or 0) > 0 or (r.kills or 0) > 0 or (r.honor or 0) > 0 or r.result
   if not quiet and DB.leaveMsg and active then
     say(statsText(r))
     if DB.groupMsg and IsInGroup and IsInGroup() and not (IsInRaid and IsInRaid()) then
@@ -1051,7 +1130,9 @@ local function openRun(name, mapID, kind)
   updateGroup()
   local c = DB.chars[charKey()]; if c then c.level = UnitLevel("player") end
   if DB.enterMsg then
-    if kind == "raid" and not DB.countRaids then
+    if kind == "pvp" then
+      say(string.format(T("bgRun"), name))
+    elseif kind == "raid" and not DB.countRaids then
       say(string.format(T("raidRun"), name))
     else
       local hN, dN = lockout()
@@ -1078,7 +1159,7 @@ end
 -- er vi i en dungeon eller raid? (battlegrounds og arenaer logges ikke i denne version)
 local function instanceNow()
   local inInst, itype = IsInInstance()
-  if not inInst or (itype ~= "party" and itype ~= "raid") then return nil end
+  if not inInst or (itype ~= "party" and itype ~= "raid" and itype ~= "pvp") then return nil end
   local name, _, _, _, _, _, _, mapID = GetInstanceInfo()
   if secret(name) then name = nil end
   return name or (GetRealZoneText and GetRealZoneText()) or "?", mapID, itype
@@ -1117,7 +1198,7 @@ local function previousRun(r)
 end
 
 local function setZone(zone)
-  if not cur or not zone or zone == "0" or cur.zone then return end
+  if not cur or cur.kind == "pvp" or not zone or zone == "0" or cur.zone then return end
   cur.zone = zone
   local prev = previousRun(cur)
   if prev and prev.zone == zone then
@@ -1182,7 +1263,7 @@ local function checkZone(isLogin, isReload)
   -- doede du og loeb tilbage som ghost, eller gik du ud for faa minutter siden uden at vi naaede at se et zone-id,
   -- fortsaetter vi din forrige run. Zone-id'et tjekkes igen, saa snart vi ser en mob eller du kaster en spell.
   local tmp = { char = charKey(), map = mapID }
-  local prev = previousRun(tmp)
+  local prev = kind ~= "pvp" and previousRun(tmp) or nil
   local ghost = UnitIsDeadOrGhost and UnitIsDeadOrGhost("player")
   if prev and (ghost or prev.died or (not prev.zone and now() - prev.leave < 10 * 60)) then
     cur = prev; prev.leave, prev.died = nil, nil
@@ -1223,6 +1304,8 @@ local function pats()
   P.repDown = makePat(FACTION_STANDING_DECREASED)
   P.xpNamed = makePat(COMBATLOG_XPGAIN_FIRSTPERSON, false)
   P.reset = makePat(INSTANCE_RESET_SUCCESS)
+  P.hk = makePat(COMBATLOG_HONORGAIN, false)
+  P.award = makePat(COMBATLOG_HONORAWARD, false)
   return P
 end
 
@@ -1258,6 +1341,30 @@ local function onXPMsg(msg)
   if p.xpNamed and msg:match(p.xpNamed) then cur.kills = (cur.kills or 0) + 1 end
 end
 
+-- honor: "X dies, honorable kill Rank: Y (Estimated Honor Points: 12)" og "You have been awarded 83 honor points."
+local function onHonor(msg)
+  if not cur or type(msg) ~= "string" or secret(msg) then return end
+  local n = tonumber(msg:match("(%d+)%D*$"))
+  if not n then return end
+  cur.honor = (cur.honor or 0) + n
+  local p = pats()
+  if p.hk and msg:match(p.hk) then cur.hks = (cur.hks or 0) + 1
+  elseif not p.hk and not (p.award and msg:match(p.award)) then cur.hks = (cur.hks or 0) + 1 end
+end
+
+-- hvem vandt? GetBattlefieldWinner giver 0 (Horde) eller 1 (Alliance), naar kampen er slut
+local function onScore()
+  if not cur or cur.kind ~= "pvp" or cur.result or not GetBattlefieldWinner then return end
+  local ok, w = pcall(GetBattlefieldWinner)
+  if not ok or w == nil or secret(w) then return end
+  local faction = UnitFactionGroup and UnitFactionGroup("player")
+  local mine = (faction == "Horde" and 0) or (faction == "Alliance" and 1) or nil
+  if mine == nil then return end
+  cur.result = (w == mine) and "won" or "lost"
+  refresh(); refreshWindows()
+end
+
+local resetQueue
 local function onSystem(msg)
   if type(msg) ~= "string" or secret(msg) then return end
   local p = pats()
@@ -1265,6 +1372,19 @@ local function onSystem(msg)
   if inst then
     for _, r in ipairs(DB.runs) do
       if r.name == inst and r.leave then r.reset = true end
+    end
+    -- du nulstillede: sig det til gruppen, saa de ved at de kan gaa ind i en ny. Flere paa en gang samles i en besked.
+    if DB.resetMsg and IsInGroup and IsInGroup() then
+      resetQueue = resetQueue or {}
+      table.insert(resetQueue, inst)
+      if #resetQueue == 1 and C_Timer and C_Timer.After then
+        C_Timer.After(1, function()
+          local list = table.concat(resetQueue, ", ")
+          resetQueue = nil
+          local ch = (IsInRaid and IsInRaid()) and "RAID" or "PARTY"
+          pcall(SendChatMessage, "InstanceETA: " .. string.format(T("resetSaid"), list), ch)
+        end)
+      end
     end
   end
 end
@@ -1349,6 +1469,64 @@ local function updateChar()
   c.bags = free
 end
 
+local function spellName(id)
+  local ok, n = pcall(function()
+    if C_Spell and C_Spell.GetSpellName then return C_Spell.GetSpellName(id) end
+    return GetSpellInfo and (GetSpellInfo(id))
+  end)
+  if ok and type(n) == "string" and not secret(n) then return n end
+end
+
+-- erhvervs cooldowns. GAET: samme spells og items som i classic (transmutes, Mooncloth, Salt Shaker).
+local CD_SPELLS = {
+  { key = "transmute", ids = {17187, 11479, 11480, 17559, 17560, 17561, 17562, 17563, 17564, 17565, 17566}, label = "Transmute" },
+  { key = "mooncloth", ids = {18560}, label = nil },
+}
+local CD_ITEMS = { { key = "salt", id = 15846, label = nil } }
+local function spellCD(id)
+  local start, d
+  if C_Spell and C_Spell.GetSpellCooldown then
+    local ok, info = pcall(C_Spell.GetSpellCooldown, id)
+    if ok and type(info) == "table" then start, d = info.startTime, info.duration end
+  elseif GetSpellCooldown then
+    local ok, a, b = pcall(GetSpellCooldown, id); if ok then start, d = a, b end
+  end
+  if secret(start) or secret(d) then return nil end
+  return start, d
+end
+local function knows(id)
+  local ok, v = pcall(function() return (IsPlayerSpell and IsPlayerSpell(id)) or (IsSpellKnown and IsSpellKnown(id)) end)
+  return ok and v == true
+end
+local function updateCooldowns()
+  local c = DB.chars[charKey()]
+  if not c then return end
+  local list = {}
+  for _, def in ipairs(CD_SPELLS) do
+    for _, id in ipairs(def.ids) do
+      if knows(id) then
+        local start, d = spellCD(id)
+        local name = def.label or spellName(id) or def.key
+        if start and d and d > 60 then list[#list + 1] = { name = name, readyAt = now() + (start + d - clock()) }
+        else list[#list + 1] = { name = name, readyAt = 0 } end
+        break  -- alle transmutes deler en cooldown
+      end
+    end
+  end
+  for _, def in ipairs(CD_ITEMS) do
+    local has = GetItemCount and (GetItemCount(def.id) or 0) > 0
+    if has then
+      local start, d
+      local getCD = (C_Container and C_Container.GetItemCooldown) or GetItemCooldown
+      if getCD then local ok, a, b = pcall(getCD, def.id); if ok then start, d = a, b end end
+      local name = def.label or (GetItemInfo and GetItemInfo(def.id)) or "Salt Shaker"
+      if start and d and not secret(d) and d > 60 then list[#list + 1] = { name = name, readyAt = now() + (start + d - clock()) }
+      else list[#list + 1] = { name = name, readyAt = 0 } end
+    end
+  end
+  c.cds = list
+end
+
 -- erhverv fra skill-listen (GAET: overskrifterne hedder "Professions" og "Secondary Skills", eller spillets egne oversaettelser)
 local function updateProfs()
   local c = DB.chars[charKey()]
@@ -1366,12 +1544,14 @@ local function updateProfs()
 end
 
 -- ---------- haendelser ----------
+local cdPending = false
 local E = CreateFrame("Frame")
 for _, ev in ipairs({"ADDON_LOADED", "PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW_AREA", "PLAYER_LOGOUT", "PLAYER_XP_UPDATE",
   "PLAYER_LEVEL_UP", "CHAT_MSG_MONEY", "CHAT_MSG_COMBAT_FACTION_CHANGE", "CHAT_MSG_COMBAT_XP_GAIN", "CHAT_MSG_SYSTEM",
+  "CHAT_MSG_COMBAT_HONOR_GAIN", "UPDATE_BATTLEFIELD_SCORE", "UPDATE_BATTLEFIELD_STATUS",
   "GROUP_ROSTER_UPDATE", "PLAYER_TARGET_CHANGED", "UPDATE_MOUSEOVER_UNIT", "NAME_PLATE_UNIT_ADDED", "UPDATE_INSTANCE_INFO",
   "UNIT_SPELLCAST_SUCCEEDED", "UNIT_SPELLCAST_START",
-  "PLAYER_MONEY", "PLAYER_UPDATE_RESTING", "UPDATE_EXHAUSTION", "BAG_UPDATE_DELAYED", "UPDATE_INVENTORY_DURABILITY", "SKILL_LINES_CHANGED",
+  "PLAYER_MONEY", "SPELL_UPDATE_COOLDOWN", "BAG_UPDATE_COOLDOWN", "PLAYER_UPDATE_RESTING", "UPDATE_EXHAUSTION", "BAG_UPDATE_DELAYED", "UPDATE_INVENTORY_DURABILITY", "SKILL_LINES_CHANGED",
   "TRADE_SHOW", "TRADE_CLOSED", "TRADE_REQUEST_CANCEL", "TRADE_MONEY_CHANGED", "TRADE_ACCEPT_UPDATE", "PLAYER_TRADE_MONEY", "UI_INFO_MESSAGE"}) do
   pcall(E.RegisterEvent, E, ev)
 end
@@ -1396,7 +1576,7 @@ E:SetScript("OnEvent", function(_, event, a1, a2)
     updateLabels()
     applyAll()
   elseif event == "PLAYER_ENTERING_WORLD" then
-    updateChar(); updateProfs()
+    updateChar(); updateProfs(); updateCooldowns()
     if RequestRaidInfo then pcall(RequestRaidInfo) end
     checkZone(a1, a2)
   elseif event == "ZONE_CHANGED_NEW_AREA" then
@@ -1412,6 +1592,8 @@ E:SetScript("OnEvent", function(_, event, a1, a2)
   elseif event == "CHAT_MSG_COMBAT_FACTION_CHANGE" then onRep(a1)
   elseif event == "CHAT_MSG_COMBAT_XP_GAIN" then onXPMsg(a1)
   elseif event == "CHAT_MSG_SYSTEM" then onSystem(a1)
+  elseif event == "CHAT_MSG_COMBAT_HONOR_GAIN" then onHonor(a1)
+  elseif event == "UPDATE_BATTLEFIELD_SCORE" or event == "UPDATE_BATTLEFIELD_STATUS" then onScore()
   elseif event == "GROUP_ROSTER_UPDATE" then updateGroup()
   elseif event == "PLAYER_TARGET_CHANGED" then sawUnit("target")
   elseif event == "UPDATE_MOUSEOVER_UNIT" then sawUnit("mouseover")
@@ -1419,7 +1601,13 @@ E:SetScript("OnEvent", function(_, event, a1, a2)
   elseif event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_START" then
     if cur and not cur.zone and a1 == "player" then setZone(zoneOf(a2)) end
   elseif event == "UPDATE_INSTANCE_INFO" then saveLockouts(); KWin.refresh()
-  elseif event == "SKILL_LINES_CHANGED" then updateProfs()
+  elseif event == "SKILL_LINES_CHANGED" then updateProfs(); updateCooldowns()
+  elseif event == "SPELL_UPDATE_COOLDOWN" or event == "BAG_UPDATE_COOLDOWN" then
+    -- kommer tit, saa vi venter lidt og opdaterer en gang
+    if not cdPending and C_Timer and C_Timer.After then
+      cdPending = true
+      C_Timer.After(2, function() cdPending = false; updateCooldowns() end)
+    end
   elseif event == "PLAYER_MONEY" or event == "PLAYER_UPDATE_RESTING" or event == "UPDATE_EXHAUSTION" or event == "BAG_UPDATE_DELAYED"
     or event == "UPDATE_INVENTORY_DURABILITY" then updateChar()
   else onTrade(event, a1, a2) end

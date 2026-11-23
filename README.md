@@ -7,7 +7,7 @@ The main window is the **instance log**, opened from the minimap button or `/iet
 - Your count this hour, in the last 24 hours, and when the next instance is free, at the top.
 - Every run numbered and colour coded: past hour, past 24 hours, older, raid and alts.
 - Click a run to post its stats to your party. Hover for every detail. Shift right-click to delete it.
-- Buttons for **Settings**, **Trades** (gold trade log), **Lockouts** (raid lockouts for all characters) and **Characters** (rested XP, gold, durability, free bag slots, professions and last seen for every character), and a **Show alts** switch.
+- Buttons for **Settings**, **Trades** (gold trade log), **Lockouts** (raid lockouts for all characters) and **Characters** (rested XP, gold, durability, free bag slots, professions, cooldowns and last seen for every character; Shift right-click removes an old character), and a **Show alts** switch.
 - A small **compact window** you can turn on in the settings.
 
 What it tracks:
@@ -18,7 +18,10 @@ What it tracks:
 - **Current run**: a timer, XP and XP per hour, looted gold and kills while you are inside.
 - **Run log**: every run with time entered, time inside, XP, gold, kills and how long it still counts toward the limit. Hover a run for levels, XP per kill, runs to next level, reputation, group members and gold traded.
 - **Same instance detection**: die and run back, or pop out to sell, and the two visits are merged into one run.
+- **Battlegrounds**: every game is logged with honor, honorable kills, honor per hour and whether you won or lost, plus your record per battleground. Battlegrounds never count toward the instance limit, and you can hide them in the log.
 - **Raid lockouts** for all your characters in the minimap tooltip.
+- **Profession cooldowns** (transmutes, Mooncloth, Salt Shaker) for all your characters.
+- **Reset message**: when you reset instances, your group is told so they know they can go into a new one.
 - **Gold trade log** (`/ieta trades`).
 - Summary in chat when you leave, optionally posted to your party.
 - English and Danish.
