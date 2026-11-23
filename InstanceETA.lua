@@ -42,8 +42,8 @@ local LOC = {
     freeToastSub = "%s of %s used this hour", resetSeen = "%s has been reset.",
     gave = "Gave %s to %s", got = "Received %s from %s",
     raidLocks = "Raid lockouts", resetsIn = "resets in %s", alts = "Your characters",
-    settings = "InstanceETA settings", sWindow = "Window", sChat = "Chat", sLimit = "Lockout",
-    showWin = "Show window", lockWin = "Lock window", minimap = "Minimap button", language = "Language",
+    settings = "Settings", sWindow = "Window", sChat = "Chat", sLimit = "Lockout",
+    showWin = "Show window", lockWin = "Lock window", minimap = "Minimap button", language = "Language", langBtn = "Language: English", doneBtn = "Done", sCount = "Counting",
     recentN = "Recent runs in window", enterMsg = "Message when you enter", leaveMsg = "Stats when you leave",
     groupMsg = "Post stats to party", tradeMsg = "Gold traded in chat", freeMsg = "Tell me when one is free",
     countRaids = "Raids count to the limit", accountWide = "Count all characters", hourLimit = "Instances per hour",
@@ -86,8 +86,8 @@ local LOC = {
     freeToastSub = "%s af %s brugt i denne time", resetSeen = "%s er nulstillet.",
     gave = "Gav %s til %s", got = "Fik %s fra %s",
     raidLocks = "Raid lockouts", resetsIn = "nulstilles om %s", alts = "Dine karakterer",
-    settings = "InstanceETA indstillinger", sWindow = "Vindue", sChat = "Chat", sLimit = "Lockout",
-    showWin = "Vis vindue", lockWin = "Lås vindue", minimap = "Minimap knap", language = "Sprog",
+    settings = "Indstillinger", sWindow = "Vindue", sChat = "Chat", sLimit = "Lockout",
+    showWin = "Vis vindue", lockWin = "Lås vindue", minimap = "Minimap knap", language = "Sprog", langBtn = "Sprog: Dansk", doneBtn = "Færdig", sCount = "Optælling",
     recentN = "Seneste runs i vinduet", enterMsg = "Besked når du går ind", leaveMsg = "Opsummering når du går ud",
     groupMsg = "Send opsummering til party", tradeMsg = "Handlet guld i chatten", freeMsg = "Sig til når en er fri",
     countRaids = "Raids tæller med", accountWide = "Tæl alle karakterer", hourLimit = "Instances pr. time",
@@ -102,7 +102,7 @@ local LOC = {
     leftAgo = "gik ud for %s siden", tradesTitle = "Handelslog", colDate = "Hvornår", colWho = "Spiller", colGave = "Gav", colGot = "Fik",
     colWhere = "Hvor", tradesFoot = "Guld du har givet eller fået i handler, nyeste først", locksTitle = "Raid lockouts, alle karakterer",
     colChar = "Karakter", colResets = "Nulstilles om", noLocks = "Ingen raid lockouts lige nu.", charsTitle = "Dine karakterer",
-    colLevel = "Level", colRested = "Rested", colGoldC = "Guld", colDur = "Holdbarhed", colBags = "Ledige pladser", colSeen = "Sidst set",
+    colLevel = "Level", colRested = "Rested", colGoldC = "Guld", colDur = "Holdbarhed", colBags = "Pladser", colSeen = "Sidst set",
     restedState = "Rested", resting = "Hviler", notResting = "Hviler ikke", profs = "Erhverv", totalGold = "Guld i alt",
     online = "Online", compact = "Lille vindue", posted = "Opsummering sendt til party.",
     legBG = "Battleground", showBG = "Battlegrounds", bgRun = "Battleground: %s. Held og lykke!", honor = "Honor", hks = "Honorable kills",
@@ -499,7 +499,7 @@ local function row(y, o)
     c.title:SetPoint("LEFT"); c.value:SetPoint("RIGHT")
     h = 22
   elseif kind == "run" then
-    c.title:SetFont(F_SEMI, 11); c.value:SetFont(F_BOLD, 11)
+    c.title:SetFont(F_SEMI, 11); c.value:SetFont(F_BOLD, 12)
     c.dot:Show(); c.dot:ClearAllPoints(); c.dot:SetPoint("LEFT", 1, 0)
     local dc = o.dotc or GREY; c.dot:SetVertexColor(dc[1], dc[2], dc[3])
     c.value:SetPoint("RIGHT"); c.title:SetPoint("LEFT", 13, 0); c.title:SetPoint("RIGHT", c.value, "LEFT", -8, 0)
@@ -575,7 +575,7 @@ local function refresh()
     if shown == 0 then y = row(y, {kind = "info", title = T("noRuns")}) end
   end
   for i = rowN + 1, #rowPool do rowPool[i]:Hide() end
-  f:SetHeight(-y + 14)
+  f:SetHeight(-y + 10)
 end
 
 -- ---------- vinduer med lister (log, handler, lockouts, karakterer) ----------
@@ -610,7 +610,7 @@ local function listWindow(name, titleKey, w, h, top, nRows, cols)
     b:SetSize(w - 28, 22); b:SetPoint("TOPLEFT", 14, top - 16 - (i - 1) * 22)
     b:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     local bg = b:CreateTexture(nil, "BACKGROUND"); bg:SetAllPoints(); bg:SetColorTexture(1, 1, 1, i % 2 == 0 and 0.025 or 0)
-    local hl = b:CreateTexture(nil, "HIGHLIGHT"); hl:SetAllPoints(); hl:SetColorTexture(1, 0.82, 0.3, 0.08)
+    local hl = b:CreateTexture(nil, "HIGHLIGHT"); hl:SetAllPoints(); hl:SetColorTexture(1, 1, 1, 0.04)
     b.dot = b:CreateTexture(nil, "ARTWORK"); b.dot:SetSize(7, 7); b.dot:SetTexture(TEX .. "Dot"); b.dot:SetPoint("LEFT", 0, 0)
     b.cells = {}
     for k, c in ipairs(cols) do
@@ -652,27 +652,27 @@ local function listWindow(name, titleKey, w, h, top, nRows, cols)
 end
 
 -- ---------- instance loggen (hovedvinduet, som i Nova) ----------
-local LW, LTOP, ROWS = 680, -164, 14
+local LW, LTOP, ROWS = 780, -164, 14
 local L = listWindow("InstanceETALog", nil, LW, -LTOP + 16 + ROWS * 22 + 40, LTOP, ROWS, {
-  {18, 22, "RIGHT", nil}, {46, 240, "LEFT", "colInst"}, {290, 104, "RIGHT", "colWhen"}, {398, 54, "RIGHT", "colTime"},
-  {456, 58, "RIGHT", "colXP"}, {518, 70, "RIGHT", "colGold"}, {592, 72, "RIGHT", "colLock"} })
+  {18, 22, "RIGHT", nil}, {46, 312, "LEFT", "colInst"}, {362, 132, "RIGHT", "colWhen"}, {498, 54, "RIGHT", "colTime"},
+  {556, 58, "RIGHT", "colXP"}, {618, 70, "RIGHT", "colGold"}, {692, 72, "RIGHT", "colLock"} })
 L.title:SetText("|cffffffffInstance|r|cffffd24aETA|r")
 label(L.empty, "logEmpty"); label(L.foot, "logHint")
 
 -- tre tal oeverst: denne time, sidste 24 timer, naeste instance
 local stats = {}
 for i, key in ipairs({"thisHour", "today", "nextFree"}) do
-  local x = 18 + (i - 1) * 206
+  local x = 18 + (i - 1) * 252
   local k = fs(L, F_SEMI, 11); k:SetPoint("TOPLEFT", x, -46); k:SetTextColor(0.55, 0.58, 0.64); label(k, key)
-  local v = fs(L, F_BOLD, 18); v:SetPoint("TOPLEFT", x, -62)
-  local track = L:CreateTexture(nil, "ARTWORK"); track:SetPoint("TOPLEFT", x, -88); track:SetSize(190, 3); track:SetColorTexture(1, 1, 1, 0.08)
+  local v = fs(L, F_BOLD, 16); v:SetPoint("TOPLEFT", x, -62)
+  local track = L:CreateTexture(nil, "ARTWORK"); track:SetPoint("TOPLEFT", x, -88); track:SetSize(232, 3); track:SetColorTexture(1, 1, 1, 0.08)
   local fill = L:CreateTexture(nil, "OVERLAY"); fill:SetPoint("TOPLEFT", track, "TOPLEFT"); fill:SetHeight(3)
   stats[i] = {v = v, track = track, fill = fill}
 end
 local function bar(s, frac, c)
   local on = type(frac) == "number"
   s.track:SetShown(on); s.fill:SetShown(on)
-  if on then s.fill:SetColorTexture(c[1], c[2], c[3], 0.9); s.fill:SetWidth(math.max(2, 190 * math.min(1, frac))) end
+  if on then s.fill:SetColorTexture(c[1], c[2], c[3], 0.9); s.fill:SetWidth(math.max(2, 232 * math.min(1, frac))) end
 end
 
 -- knapper: indstillinger, handler, lockouts, karakterer + "vis alts"
@@ -762,8 +762,8 @@ L.refresh = function()
 end
 
 -- ---------- handelsloggen ----------
-local TWin = listWindow("InstanceETATrades", "tradesTitle", 560, 420, -50, 14, {
-  {18, 92, "LEFT", "colDate"}, {114, 120, "LEFT", "colWho"}, {238, 90, "RIGHT", "colGave"}, {332, 90, "RIGHT", "colGot"}, {430, 112, "LEFT", "colWhere"} })
+local TWin = listWindow("InstanceETATrades", "tradesTitle", 520, 420, -50, 14, {
+  {18, 86, "LEFT", "colDate"}, {108, 110, "LEFT", "colWho"}, {222, 80, "RIGHT", "colGave"}, {306, 80, "RIGHT", "colGot"}, {396, 106, "LEFT", "colWhere"} })
 label(TWin.empty, "noTrades"); label(TWin.foot, "tradesFoot")
 TWin.refresh = function()
   if not (DB and TWin:IsShown()) then return end
@@ -771,7 +771,7 @@ TWin.refresh = function()
   for _, x in ipairs(DB.trades) do
     items[#items + 1] = {
       dot = (x.char ~= charKey()) and ALTC or nil,
-      cells = { date("%d/%m %H:%M", x.at), x.who or "?", (x.give or 0) > 0 and money(x.give) or "", (x.get or 0) > 0 and money(x.get) or "",
+      cells = { date("%d/%m %H:%M", x.at), shortName(x.who or "?"), (x.give or 0) > 0 and money(x.give) or "", (x.get or 0) > 0 and money(x.get) or "",
         (x.char ~= charKey() and (shortName(x.char) .. ", ") or "") .. (x.inst or x.zone or "") },
       colors = { GREY, WHITE, ORANGE, GREEN, GREY },
     }
@@ -780,8 +780,8 @@ TWin.refresh = function()
 end
 
 -- ---------- raid lockouts for alle karakterer ----------
-local KWin = listWindow("InstanceETALockouts", "locksTitle", 460, 340, -50, 10, {
-  {18, 130, "LEFT", "colChar"}, {152, 170, "LEFT", "colInst"}, {326, 116, "RIGHT", "colResets"} })
+local KWin = listWindow("InstanceETALockouts", "locksTitle", 520, 340, -50, 10, {
+  {18, 130, "LEFT", "colChar"}, {152, 214, "LEFT", "colInst"}, {370, 132, "RIGHT", "colResets"} })
 label(KWin.empty, "noLocks")
 KWin.refresh = function()
   if not (DB and KWin:IsShown()) then return end
@@ -946,22 +946,15 @@ toggle(L0, -74, "compact", "hidden", true)  -- gemmes som DB.hidden, saa knappen
 toggle(L0, -100, "lockWin", "locked")
 toggle(L0, -126, "minimap", "showMinimap")
 slider(L0, -156, "recentN", 0, 10, "recentN", function(v) return v == 0 and T("off") or tostring(v) end)
-do -- sprog: to smaa knapper
-  local t = fs(S, F_SEMI, 12); t:SetPoint("TOPLEFT", L0 + 18, -206); t:SetTextColor(0.85, 0.87, 0.92); label(t, "language")
-  local da = pill(S, "Dansk", 64, 20); da:SetPoint("TOPRIGHT", S, "TOPLEFT", L0 + COL - 18, -202)
-  local en = pill(S, "English", 64, 20); en:SetPoint("RIGHT", da, "LEFT", -6, 0)
-  local function paint()
-    local isDa = DB.lang == "da"
-    da:paint(isDa and 1 or 0.55, isDa and 0.82 or 0.58, isDa and 0.4 or 0.64); da.bg:SetAlpha(isDa and 1 or 0.45)
-    en:paint(isDa and 0.55 or 1, isDa and 0.58 or 0.82, isDa and 0.64 or 0.4); en.bg:SetAlpha(isDa and 0.45 or 1)
-  end
-  da:SetScript("OnClick", function() DB.lang = "da"; paint(); updateLabels(); applyAll() end)
-  en:SetScript("OnClick", function() DB.lang = "en"; paint(); updateLabels(); applyAll() end)
-  controls[#controls + 1] = {load = paint}
+do -- knapper i bunden, som i LevelETA: sprog og faerdig
+  local langB = pill(S, nil, 140); langB:SetPoint("BOTTOMLEFT", 18, 16); label(langB.text, "langBtn")
+  langB:SetScript("OnClick", function() DB.lang = (DB.lang == "da") and "en" or "da"; updateLabels(); applyAll() end)
+  local doneB = pill(S, nil, 100); doneB:SetPoint("BOTTOMRIGHT", -18, 16); label(doneB.text, "doneBtn")
+  doneB:SetScript("OnClick", function() S:Hide() end)
 end
-section(L0, -244, "sLimit")
-slider(L0, -266, "hourLimit", 0, 10, "hourLimit", function(v) return v == 0 and T("off") or tostring(v) end)
-slider(L0, -310, "dayLimit", 0, 60, "dayLimit", function(v) return v == 0 and T("off") or tostring(v) end)
+section(L0, -200, "sLimit")
+slider(L0, -222, "hourLimit", 0, 10, "hourLimit", function(v) return v == 0 and T("off") or tostring(v) end)
+slider(L0, -266, "dayLimit", 0, 60, "dayLimit", function(v) return v == 0 and T("off") or tostring(v) end)
 
 section(R0, -52, "sChat")
 toggle(R0, -74, "enterMsg", "enterMsg")
@@ -970,8 +963,9 @@ toggle(R0, -126, "groupMsg", "groupMsg")
 toggle(R0, -152, "tradeMsg", "tradeMsg")
 toggle(R0, -178, "freeMsg", "freeMsg")
 toggle(R0, -204, "resetMsg", "resetMsg")
-toggle(R0, -266, "countRaids", "countRaids")
-toggle(R0, -292, "accountWide", "accountWide")
+section(R0, -240, "sCount")
+toggle(R0, -262, "countRaids", "countRaids")
+toggle(R0, -288, "accountWide", "accountWide")
 
 S:SetScript("OnShow", function() for _, c in ipairs(controls) do c.load() end end)
 
