@@ -598,6 +598,11 @@ local function listWindow(name, titleKey, w, h, top, nRows, cols)
   win.title = header(win); if titleKey then label(win.title, titleKey) end
   closeButton(win, function() win:Hide() end)
   win.offset = 0
+  -- the first column starts after the dot rows can carry, so the dot never sits on the text
+  if cols[1] and cols[1][3] == "LEFT" and cols[1][1] < 26 then
+    local d = 26 - cols[1][1]
+    cols[1] = { cols[1][1] + d, cols[1][2] - d, cols[1][3], cols[1][4] }
+  end
   for _, c in ipairs(cols) do
     if c[4] then
       local t = fs(win, F_BOLD, 10); t:SetPoint("TOPLEFT", c[1], top); t:SetWidth(c[2]); t:SetJustifyH(c[3]); t:SetTextColor(1, 0.82, 0.4)
@@ -763,7 +768,7 @@ end
 
 -- ---------- handelsloggen ----------
 local TWin = listWindow("InstanceETATrades", "tradesTitle", 520, 420, -50, 14, {
-  {18, 86, "LEFT", "colDate"}, {108, 110, "LEFT", "colWho"}, {222, 80, "RIGHT", "colGave"}, {306, 80, "RIGHT", "colGot"}, {396, 106, "LEFT", "colWhere"} })
+  {18, 86, "LEFT", "colDate"}, {108, 96, "LEFT", "colWho"}, {208, 80, "RIGHT", "colGave"}, {292, 80, "RIGHT", "colGot"}, {382, 120, "LEFT", "colWhere"} })
 label(TWin.empty, "noTrades"); label(TWin.foot, "tradesFoot")
 TWin.refresh = function()
   if not (DB and TWin:IsShown()) then return end
