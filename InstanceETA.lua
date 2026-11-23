@@ -294,6 +294,11 @@ local function movable(frame, canMove, onStop)
   frame:RegisterForDrag("LeftButton")
   frame:SetScript("OnDragStart", function(self) if canMove() then self:StartMoving() end end)
   frame:SetScript("OnDragStop", function(self) self:StopMovingOrSizing(); if onStop then onStop(self) end end)
+  -- lag: det vindue du klikker paa eller aabner, kommer foran de andre ETA vinduer
+  if frame.SetToplevel then frame:SetToplevel(true) end
+  frame:SetFrameLevel(40)
+  frame:HookScript("OnShow", function(self) self:Raise() end)
+  frame:HookScript("OnMouseDown", function(self) self:Raise() end)
 end
 
 local function pill(parent, text, w, h)
@@ -428,7 +433,6 @@ local IW = W - 28
 local f = CreateFrame("Frame", "InstanceETAFrame", UIParent)
 f:SetSize(W, 120)
 skin(f, "Panel", 520, 1024)
-if f.SetToplevel then f:SetToplevel(true) end
 local function pinTop()
   local l, t = f:GetLeft(), f:GetTop()
   if not (l and t) then return end
@@ -587,7 +591,7 @@ local function shortName(key) return (key or "?"):match("^[^-]+") or key end
 -- et vindue i ETA stil med en liste. cols = { {x, bredde, "LEFT"/"RIGHT", noegle til overskrift}, ... }
 local function listWindow(name, titleKey, w, h, top, nRows, cols)
   local win = CreateFrame("Frame", name, UIParent)
-  win:SetSize(w, h); win:SetPoint("CENTER"); win:SetFrameStrata("DIALOG"); win:Hide()
+  win:SetSize(w, h); win:SetPoint("CENTER"); win:SetFrameStrata("HIGH"); win:Hide()
   skin(win, "Wide", 1040, 2048)
   movable(win, function() return true end)
   tinsert(UISpecialFrames, name)
@@ -888,7 +892,7 @@ local function refreshWindows() L.refresh(); TWin.refresh(); KWin.refresh(); CWi
 -- ---------- indstillinger ----------
 local S = CreateFrame("Frame", "InstanceETASettings", UIParent)
 local SW, COL = 520, 260
-S:SetSize(SW, 360); S:SetPoint("CENTER"); S:SetFrameStrata("DIALOG"); S:Hide()
+S:SetSize(SW, 360); S:SetPoint("CENTER"); S:SetFrameStrata("HIGH"); S:Hide()
 skin(S, "Wide", 1040, 2048)
 movable(S, function() return true end)
 tinsert(UISpecialFrames, "InstanceETASettings")
