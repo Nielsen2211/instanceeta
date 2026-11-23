@@ -33,7 +33,8 @@ local LOC = {
     logHint = "Click: post stats  ·  Hover: details  ·  Shift right-click: delete", logEmpty = "No runs in the log yet.",
     entered = "Entered", left = "Left", levels = "Level", group = "Group", rep = "Reputation", trades = "Gold traded",
     xpHr = "XP per hour", perKill = "XP per kill", runsLevel = "Runs to next level", avgLevel = "Average group level",
-    merged = "Same instance as your last run, merged.", hourLeft = "counts this hour for %s", dayLeft = "counts today for %s",
+    merged = "Same instance as your last run, merged.", resumed = "Back in the same instance, continuing your last run.",
+    hourLeft = "counts this hour for %s", dayLeft = "counts today for %s",
     newRun = "New instance: %s.  %s this hour, %s today.", raidRun = "New raid: %s (raids do not count to the hourly limit).",
     undoHint = "Not a new instance? Type /ieta undo", undone = "Removed your last run (%s).", nothingUndo = "No run to remove.",
     deleted = "Deleted %s.", runDone = "%s done: %s", locked = "You are at the limit", lockedSub = "Next instance %s",
@@ -71,7 +72,8 @@ local LOC = {
     logHint = "Klik: send opsummering  ·  Hold musen over: detaljer  ·  Shift højreklik: slet",  logEmpty = "Ingen runs i loggen endnu.",
     entered = "Gik ind", left = "Gik ud", levels = "Level", group = "Gruppe", rep = "Omdømme", trades = "Guld handlet",
     xpHr = "XP i timen", perKill = "XP pr. kill", runsLevel = "Runs til næste level", avgLevel = "Gruppens gns. level",
-    merged = "Samme instance som sidst, lagt sammen.", hourLeft = "tæller i denne time i %s", dayLeft = "tæller i dag i %s",
+    merged = "Samme instance som sidst, lagt sammen.", resumed = "Tilbage i samme instance, fortsætter din sidste run.",
+    hourLeft = "tæller i denne time i %s", dayLeft = "tæller i dag i %s",
     newRun = "Ny instance: %s.  %s denne time, %s i dag.", raidRun = "Ny raid: %s (raids tæller ikke med i timegrænsen).",
     undoHint = "Ikke en ny instance? Skriv /ieta undo", undone = "Fjernede din sidste run (%s).", nothingUndo = "Ingen run at fjerne.",
     deleted = "Slettede %s.", runDone = "%s færdig: %s", locked = "Du har nået grænsen", lockedSub = "Næste instance %s",
@@ -1023,6 +1025,7 @@ local function closeRun(quiet)
   local r = cur
   r.leave = now()
   r.lvlOut = UnitLevel("player")
+  r.died = UnitIsDeadOrGhost and UnitIsDeadOrGhost("player") or nil
   cur = nil; DB.charCur[charKey()] = nil
   wipe(seenZone)
   local active = (r.xp or 0) > 0 or (r.money or 0) > 0 or (r.kills or 0) > 0
@@ -1081,6 +1084,73 @@ local function instanceNow()
   return name or (GetRealZoneText and GetRealZoneText()) or "?", mapID, itype
 end
 
+-- ---------- samme instance som sidst? ----------
+-- Alle mobs i en instance, og alle de spells du kaster derinde, har instancens zone-id i deres GUID
+-- ("Creature-0-server-kort-ZONE-npc-..." og "Cast-3-server-kort-ZONE-spell-..."). Zone-id'et skifter, naar instancen nulstilles.
+-- Vi gemmer det foerste zone-id vi ser i en run. Ser vi det samme zone-id i din forrige run i samme instance, er det den samme,
+-- og de to runs laegges sammen. Zone-id'et tages kun fra mobs du kan angribe (ikke kaeledyr og pets) og fra dine egne spells.
+
+-- laeg run b (den nye) ind i run a (den gamle), og fortsaet a
+local function mergeInto(a, b)
+  a.t = (a.t or 0) + (b.t or 0)
+  a.xp = (a.xp or 0) + (b.xp or 0)
+  a.money = (a.money or 0) + (b.money or 0)
+  a.kills = (a.kills or 0) + (b.kills or 0)
+  for k, v in pairs(b.rep or {}) do a.rep = a.rep or {}; a.rep[k] = (a.rep[k] or 0) + v end
+  for k, v in pairs(b.group or {}) do a.group = a.group or {}; a.group[k] = v end
+  for _, x in ipairs(b.trades or {}) do a.trades = a.trades or {}; table.insert(a.trades, x) end
+  a.zone = a.zone or b.zone
+  removeRun(b)
+  removeRun(a); table.insert(DB.runs, 1, a)  -- op foerst i loggen igen
+  a.leave, a.died = nil, nil
+  cur = a; DB.charCur[charKey()] = a.id
+end
+
+-- din forrige run i samme instance (kun den seneste, og kun hvis den ikke er nulstillet siden)
+local function previousRun(r)
+  for _, x in ipairs(DB.runs) do
+    if x ~= r and x.char == r.char then
+      if x.map == r.map and not x.reset and x.leave and now() - x.enter < DAY then return x end
+      if x.map ~= r.map then return nil end  -- du har vaeret i en anden instance siden
+    end
+  end
+end
+
+local function setZone(zone)
+  if not cur or not zone or zone == "0" or cur.zone then return end
+  cur.zone = zone
+  local prev = previousRun(cur)
+  if prev and prev.zone == zone then
+    mergeInto(prev, cur)
+    say(T("merged"))
+    refresh(); refreshWindows()
+  end
+end
+
+local function zoneOf(guid)
+  if not guid or secret(guid) or type(guid) ~= "string" then return nil end
+  return guid:match("^Creature%-%d+%-%d+%-%d+%-(%d+)%-") or guid:match("^Vehicle%-%d+%-%d+%-%d+%-(%d+)%-")
+    or guid:match("^Cast%-%d+%-%d+%-%d+%-(%d+)%-")
+end
+
+local function sawUnit(unit)
+  if not cur or cur.zone or not unit or not UnitExists(unit) then return end
+  local ok, attackable = pcall(UnitCanAttack, "player", unit)
+  if not ok or secret(attackable) or not attackable then return end
+  local pc = UnitPlayerControlled and UnitPlayerControlled(unit)
+  if pc and not secret(pc) then return end
+  setZone(zoneOf(UnitGUID(unit)))
+end
+
+local function scanPlates()
+  if not cur or cur.zone then return end
+  for i = 1, 40 do
+    local u = "nameplate" .. i
+    if UnitExists(u) then sawUnit(u); if not cur or cur.zone then return end end
+  end
+  sawUnit("target"); sawUnit("mouseover")
+end
+
 local function checkZone(isLogin, isReload)
   local name, mapID, kind = instanceNow()
   local saved = findRun(DB.charCur[charKey()])
@@ -1109,36 +1179,23 @@ local function checkZone(isLogin, isReload)
     refresh(); L.refresh()
     return
   end
-  openRun(name, mapID, kind)
-end
-
--- samme instance som sidst? Mobbenes GUID indeholder instancens zone-id.
-local function sawGUID(guid)
-  if not cur or not guid or secret(guid) or type(guid) ~= "string" then return end
-  local zone = guid:match("^Creature%-%d+%-%d+%-%d+%-(%d+)%-") or guid:match("^Vehicle%-%d+%-%d+%-%d+%-(%d+)%-")
-  if not zone or seenZone[zone] then return end
-  seenZone[zone] = true
-  if cur.zone then return end
-  cur.zone = zone
-  -- find din seneste run i den samme instance, med samme zone-id, som ikke er blevet nulstillet
-  for _, r in ipairs(DB.runs) do
-    if r ~= cur and r.char == cur.char and r.map == cur.map and r.zone == zone and not r.reset and now() - r.enter < DAY then
-      r.t = (r.t or 0) + (cur.t or 0)
-      r.xp = (r.xp or 0) + (cur.xp or 0)
-      r.money = (r.money or 0) + (cur.money or 0)
-      r.kills = (r.kills or 0) + (cur.kills or 0)
-      for k, v in pairs(cur.rep or {}) do r.rep = r.rep or {}; r.rep[k] = (r.rep[k] or 0) + v end
-      for k, v in pairs(cur.group or {}) do r.group = r.group or {}; r.group[k] = v end
-      for _, x in ipairs(cur.trades or {}) do r.trades = r.trades or {}; table.insert(r.trades, x) end
-      removeRun(cur)
-      -- runnen flyttes op foerst i loggen igen
-      removeRun(r); table.insert(DB.runs, 1, r)
-      r.leave = nil
-      cur = r; DB.charCur[charKey()] = r.id
-      say(T("merged"))
-      refresh(); L.refresh()
-      return
-    end
+  -- doede du og loeb tilbage som ghost, eller gik du ud for faa minutter siden uden at vi naaede at se et zone-id,
+  -- fortsaetter vi din forrige run. Zone-id'et tjekkes igen, saa snart vi ser en mob eller du kaster en spell.
+  local tmp = { char = charKey(), map = mapID }
+  local prev = previousRun(tmp)
+  local ghost = UnitIsDeadOrGhost and UnitIsDeadOrGhost("player")
+  if prev and (ghost or prev.died or (not prev.zone and now() - prev.leave < 10 * 60)) then
+    cur = prev; prev.leave, prev.died = nil, nil
+    removeRun(prev); table.insert(DB.runs, 1, prev)
+    DB.charCur[charKey()] = prev.id
+    wipe(seenZone); lastXP = snapshotXP(); updateGroup()
+    if not ghost and not prev.died then say(T("resumed")) end
+    refresh(); refreshWindows()
+  else
+    openRun(name, mapID, kind)
+  end
+  if C_Timer and C_Timer.After then
+    C_Timer.After(2, scanPlates); C_Timer.After(6, scanPlates)
   end
 end
 
@@ -1313,6 +1370,7 @@ local E = CreateFrame("Frame")
 for _, ev in ipairs({"ADDON_LOADED", "PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW_AREA", "PLAYER_LOGOUT", "PLAYER_XP_UPDATE",
   "PLAYER_LEVEL_UP", "CHAT_MSG_MONEY", "CHAT_MSG_COMBAT_FACTION_CHANGE", "CHAT_MSG_COMBAT_XP_GAIN", "CHAT_MSG_SYSTEM",
   "GROUP_ROSTER_UPDATE", "PLAYER_TARGET_CHANGED", "UPDATE_MOUSEOVER_UNIT", "NAME_PLATE_UNIT_ADDED", "UPDATE_INSTANCE_INFO",
+  "UNIT_SPELLCAST_SUCCEEDED", "UNIT_SPELLCAST_START",
   "PLAYER_MONEY", "PLAYER_UPDATE_RESTING", "UPDATE_EXHAUSTION", "BAG_UPDATE_DELAYED", "UPDATE_INVENTORY_DURABILITY", "SKILL_LINES_CHANGED",
   "TRADE_SHOW", "TRADE_CLOSED", "TRADE_REQUEST_CANCEL", "TRADE_MONEY_CHANGED", "TRADE_ACCEPT_UPDATE", "PLAYER_TRADE_MONEY", "UI_INFO_MESSAGE"}) do
   pcall(E.RegisterEvent, E, ev)
@@ -1355,9 +1413,11 @@ E:SetScript("OnEvent", function(_, event, a1, a2)
   elseif event == "CHAT_MSG_COMBAT_XP_GAIN" then onXPMsg(a1)
   elseif event == "CHAT_MSG_SYSTEM" then onSystem(a1)
   elseif event == "GROUP_ROSTER_UPDATE" then updateGroup()
-  elseif event == "PLAYER_TARGET_CHANGED" then if cur then sawGUID(UnitGUID("target")) end
-  elseif event == "UPDATE_MOUSEOVER_UNIT" then if cur then sawGUID(UnitGUID("mouseover")) end
-  elseif event == "NAME_PLATE_UNIT_ADDED" then if cur and a1 then sawGUID(UnitGUID(a1)) end
+  elseif event == "PLAYER_TARGET_CHANGED" then sawUnit("target")
+  elseif event == "UPDATE_MOUSEOVER_UNIT" then sawUnit("mouseover")
+  elseif event == "NAME_PLATE_UNIT_ADDED" then sawUnit(a1)
+  elseif event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_START" then
+    if cur and not cur.zone and a1 == "player" then setZone(zoneOf(a2)) end
   elseif event == "UPDATE_INSTANCE_INFO" then saveLockouts(); KWin.refresh()
   elseif event == "SKILL_LINES_CHANGED" then updateProfs()
   elseif event == "PLAYER_MONEY" or event == "PLAYER_UPDATE_RESTING" or event == "UPDATE_EXHAUSTION" or event == "BAG_UPDATE_DELAYED"
@@ -1369,7 +1429,10 @@ end)
 local wasLocked = false
 local function tick(el)
   if not DB then return end
-  if cur then cur.t = (cur.t or 0) + el end
+  if cur then
+    cur.t = (cur.t or 0) + el
+    if not cur.zone then scanPlates() end
+  end
   local _, _, nextAt = lockout()
   local locked = nextAt ~= nil
   if wasLocked and not locked and DB.freeMsg then
