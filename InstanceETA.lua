@@ -30,7 +30,7 @@ local LOC = {
     xp = "XP", gold = "Gold", kills = "Kills", time = "Time", perHr = "/h", ago = "%s ago", stillIn = "inside now",
     log = "Log", logTitle = "Instance log", thisChar = "This character", allChars = "All characters",
     colInst = "Instance", colWhen = "Entered", colTime = "Time", colXP = "XP", colGold = "Gold", colKills = "Kills", colLock = "Lockout",
-    logHint = "Hover a run for details  ·  Shift right-click to delete it", logEmpty = "No runs in the log yet.",
+    logHint = "Click: post stats  ·  Hover: details  ·  Shift right-click: delete", logEmpty = "No runs in the log yet.",
     entered = "Entered", left = "Left", levels = "Level", group = "Group", rep = "Reputation", trades = "Gold traded",
     xpHr = "XP per hour", perKill = "XP per kill", runsLevel = "Runs to next level", avgLevel = "Average group level",
     merged = "Same instance as your last run, merged.", hourLeft = "counts this hour for %s", dayLeft = "counts today for %s",
@@ -47,11 +47,19 @@ local LOC = {
     groupMsg = "Post stats to party", tradeMsg = "Gold traded in chat", freeMsg = "Tell me when one is free",
     countRaids = "Raids count to the limit", accountWide = "Count all characters", hourLimit = "Instances per hour",
     dayLimit = "Instances per 24 hours", off = "Off",
-    tipLeft = "Left-click: show or hide", tipRight = "Right-click: settings", tipShift = "Shift-click: log",
-    help = "/ieta: window  ·  /ieta log  ·  /ieta config  ·  /ieta undo  ·  /ieta trades  ·  /ieta reset  ·  /ieta da|en",
+    tipLeft = "Left-click: instance log", tipRight = "Right-click: settings", tipShift = "Shift-click: compact window",
+    help = "/ieta: log  ·  /ieta compact  ·  /ieta chars  ·  /ieta lockouts  ·  /ieta config  ·  /ieta undo  ·  /ieta trades  ·  /ieta reset  ·  /ieta da|en",
     tradesHead = "InstanceETA gold trades, newest first", noTrades = "No gold trades yet.",
     posReset = "Windows moved back to the middle.", runWord = "run", runsWord = "runs",
     statsLine = "%s in %s: %s XP, %s, %d kills",
+    legHour = "Past hour", legDay = "Past 24 hours", legOld = "Older", legRaid = "Raid", legAlts = "Alts",
+    bSettings = "Settings", bTrades = "Trades", bLocks = "Lockouts", bChars = "Characters", showAlts = "Show alts",
+    leftAgo = "left %s ago", tradesTitle = "Trade log", colDate = "When", colWho = "Player", colGave = "Gave", colGot = "Received",
+    colWhere = "Where", tradesFoot = "Gold you gave or got in trades, newest first", locksTitle = "Raid lockouts, all characters",
+    colChar = "Character", colResets = "Resets in", noLocks = "No raid lockouts right now.", charsTitle = "Your characters",
+    colLevel = "Level", colRested = "Rested", colGoldC = "Gold", colDur = "Durability", colBags = "Bags free", colSeen = "Last seen",
+    restedState = "Rested state", resting = "Resting", notResting = "Not resting", profs = "Professions", totalGold = "Total gold",
+    online = "Online", compact = "Compact window", posted = "Stats posted to party.",
   },
   da = {
     hm = "%dt %02dm", dh = "%dd %dt",
@@ -60,7 +68,7 @@ local LOC = {
     xp = "XP", gold = "Guld", kills = "Kills", time = "Tid", perHr = "/t", ago = "%s siden", stillIn = "inde nu",
     log = "Log", logTitle = "Instance log", thisChar = "Denne karakter", allChars = "Alle karakterer",
     colInst = "Instance", colWhen = "Gik ind", colTime = "Tid", colXP = "XP", colGold = "Guld", colKills = "Kills", colLock = "Lockout",
-    logHint = "Hold musen over en run for detaljer  ·  Shift højreklik for at slette",  logEmpty = "Ingen runs i loggen endnu.",
+    logHint = "Klik: send opsummering  ·  Hold musen over: detaljer  ·  Shift højreklik: slet",  logEmpty = "Ingen runs i loggen endnu.",
     entered = "Gik ind", left = "Gik ud", levels = "Level", group = "Gruppe", rep = "Omdømme", trades = "Guld handlet",
     xpHr = "XP i timen", perKill = "XP pr. kill", runsLevel = "Runs til næste level", avgLevel = "Gruppens gns. level",
     merged = "Samme instance som sidst, lagt sammen.", hourLeft = "tæller i denne time i %s", dayLeft = "tæller i dag i %s",
@@ -77,11 +85,19 @@ local LOC = {
     groupMsg = "Send opsummering til party", tradeMsg = "Handlet guld i chatten", freeMsg = "Sig til når en er fri",
     countRaids = "Raids tæller med", accountWide = "Tæl alle karakterer", hourLimit = "Instances pr. time",
     dayLimit = "Instances pr. 24 timer", off = "Fra",
-    tipLeft = "Venstreklik: vis eller skjul", tipRight = "Højreklik: indstillinger", tipShift = "Shift klik: log",
-    help = "/ieta: vindue  ·  /ieta log  ·  /ieta config  ·  /ieta undo  ·  /ieta trades  ·  /ieta reset  ·  /ieta da|en",
+    tipLeft = "Venstreklik: instance log", tipRight = "Højreklik: indstillinger", tipShift = "Shift klik: lille vindue",
+    help = "/ieta: log  ·  /ieta compact  ·  /ieta chars  ·  /ieta lockouts  ·  /ieta config  ·  /ieta undo  ·  /ieta trades  ·  /ieta reset  ·  /ieta da|en",
     tradesHead = "InstanceETA guld handler, nyeste først", noTrades = "Ingen guld handler endnu.",
     posReset = "Vinduerne er flyttet tilbage til midten.", runWord = "run", runsWord = "runs",
     statsLine = "%s på %s: %s XP, %s, %d kills",
+    legHour = "Sidste time", legDay = "Sidste 24 timer", legOld = "Ældre", legRaid = "Raid", legAlts = "Alts",
+    bSettings = "Indstillinger", bTrades = "Handler", bLocks = "Lockouts", bChars = "Karakterer", showAlts = "Vis alts",
+    leftAgo = "gik ud for %s siden", tradesTitle = "Handelslog", colDate = "Hvornår", colWho = "Spiller", colGave = "Gav", colGot = "Fik",
+    colWhere = "Hvor", tradesFoot = "Guld du har givet eller fået i handler, nyeste først", locksTitle = "Raid lockouts, alle karakterer",
+    colChar = "Karakter", colResets = "Nulstilles om", noLocks = "Ingen raid lockouts lige nu.", charsTitle = "Dine karakterer",
+    colLevel = "Level", colRested = "Rested", colGoldC = "Guld", colDur = "Holdbarhed", colBags = "Ledige pladser", colSeen = "Sidst set",
+    restedState = "Rested", resting = "Hviler", notResting = "Hviler ikke", profs = "Erhverv", totalGold = "Guld i alt",
+    online = "Online", compact = "Lille vindue", posted = "Opsummering sendt til party.",
   },
 }
 local function T(k) return (LOC[(DB and DB.lang) or "en"] or LOC.en)[k] or LOC.en[k] or k end
@@ -91,7 +107,7 @@ local function updateLabels() for _, x in ipairs(labels) do x[1]:SetText(T(x[2])
 
 -- GAET: Forever har en graense paa 5 instances i timen og ingen graense pr. doegn. Begge kan aendres i indstillingerne.
 local defaults = {
-  lang = "en", hidden = false, locked = false, showMinimap = true, mmAngle = 200, recentN = 5,
+  lang = "en", hidden = true, logAlts = false, locked = false, showMinimap = true, mmAngle = 200, recentN = 5,
   enterMsg = true, leaveMsg = true, groupMsg = false, tradeMsg = true, freeMsg = true,
   countRaids = false, accountWide = false, hourLimit = 5, dayLimit = 0,
 }
@@ -521,91 +537,277 @@ local function refresh()
   f:SetHeight(-y + 14)
 end
 
--- ---------- log vindue ----------
-local L = CreateFrame("Frame", "InstanceETALog", UIParent)
-local LW, LH, ROWS = 560, 470, 16
-L:SetSize(LW, LH); L:SetPoint("CENTER"); L:SetFrameStrata("DIALOG"); L:Hide()
-skin(L, "Wide", 1040, 2048)
-movable(L, function() return true end)
-tinsert(UISpecialFrames, "InstanceETALog")
-label(header(L), "logTitle")
-closeButton(L, function() L:Hide() end)
+-- ---------- vinduer med lister (log, handler, lockouts, karakterer) ----------
+local postStats   -- saettes laengere nede
+local AGE_HOUR, AGE_DAY, AGE_OLD, RAIDC, ALTC = GREEN, GOLD, RED, {0.75, 0.55, 1}, {0.62, 0.82, 1}
 
-local logAll = false
-local logOffset = 0
-local tabB = pill(L, nil, 120, 20); tabB:SetPoint("TOPRIGHT", -40, -10); label(tabB.text, "allChars")
-local tabA = pill(L, nil, 120, 20); tabA:SetPoint("RIGHT", tabB, "LEFT", -6, 0); label(tabA.text, "thisChar")
-
-local COLS = { {"colInst", 18, 150, "LEFT"}, {"colWhen", 172, 70, "RIGHT"}, {"colTime", 246, 58, "RIGHT"}, {"colXP", 308, 62, "RIGHT"},
-  {"colGold", 374, 76, "RIGHT"}, {"colKills", 454, 36, "RIGHT"}, {"colLock", 494, 50, "RIGHT"} }
-for _, c in ipairs(COLS) do
-  local t = fs(L, F_BOLD, 10); t:SetPoint("TOPLEFT", c[2], -50); t:SetWidth(c[3]); t:SetJustifyH(c[4]); t:SetTextColor(1, 0.82, 0.4)
-  label(t, c[1])
+local function classHex(class)
+  local cc = RAID_CLASS_COLORS and class and RAID_CLASS_COLORS[class]
+  return cc and hex({cc.r, cc.g, cc.b}) or "|cffd9dde6"
 end
-local logRows = {}
-for i = 1, ROWS do
-  local b = CreateFrame("Button", nil, L)
-  b:SetSize(LW - 28, 22); b:SetPoint("TOPLEFT", 14, -66 - (i - 1) * 22)
-  b:RegisterForClicks("RightButtonUp")
-  local bg = b:CreateTexture(nil, "BACKGROUND"); bg:SetAllPoints(); bg:SetColorTexture(1, 1, 1, i % 2 == 0 and 0.025 or 0)
-  local hl = b:CreateTexture(nil, "HIGHLIGHT"); hl:SetAllPoints(); hl:SetColorTexture(1, 0.82, 0.3, 0.08)
-  b.dot = b:CreateTexture(nil, "ARTWORK"); b.dot:SetSize(7, 7); b.dot:SetTexture(TEX .. "Dot"); b.dot:SetPoint("LEFT", 0, 0)
-  b.cells = {}
-  for k, c in ipairs(COLS) do
-    local t = fs(b, k == 1 and F_SEMI or F_BOLD, 11)
-    t:SetPoint("LEFT", b, "LEFT", c[2] - 14 + (k == 1 and 12 or 0), 0); t:SetWidth(c[3] - (k == 1 and 12 or 0)); t:SetJustifyH(c[4])
-    b.cells[k] = t
-  end
-  b:SetScript("OnEnter", function(self) if self.run then runTip(self, self.run) end end)
-  b:SetScript("OnLeave", function() GameTooltip:Hide() end)
-  b:SetScript("OnClick", function(self, btn)
-    if btn == "RightButton" and IsShiftKeyDown() and self.run then
-      local r = self.run
-      if r == cur then cur = nil; DB.charCur[charKey()] = nil end
-      removeRun(r); say(string.format(T("deleted"), (r.name or "?") .. " (" .. date("%d/%m %H:%M", r.enter) .. ")"))
-      GameTooltip:Hide(); L.refresh(); refresh()
+local function shortName(key) return (key or "?"):match("^[^-]+") or key end
+
+-- et vindue i ETA stil med en liste. cols = { {x, bredde, "LEFT"/"RIGHT", noegle til overskrift}, ... }
+local function listWindow(name, titleKey, w, h, top, nRows, cols)
+  local win = CreateFrame("Frame", name, UIParent)
+  win:SetSize(w, h); win:SetPoint("CENTER"); win:SetFrameStrata("DIALOG"); win:Hide()
+  skin(win, "Wide", 1040, 2048)
+  movable(win, function() return true end)
+  tinsert(UISpecialFrames, name)
+  win.title = header(win); if titleKey then label(win.title, titleKey) end
+  closeButton(win, function() win:Hide() end)
+  win.offset = 0
+  for _, c in ipairs(cols) do
+    if c[4] then
+      local t = fs(win, F_BOLD, 10); t:SetPoint("TOPLEFT", c[1], top); t:SetWidth(c[2]); t:SetJustifyH(c[3]); t:SetTextColor(1, 0.82, 0.4)
+      label(t, c[4])
     end
-  end)
-  logRows[i] = b
+  end
+  win.rows = {}
+  for i = 1, nRows do
+    local b = CreateFrame("Button", nil, win)
+    b:SetSize(w - 28, 22); b:SetPoint("TOPLEFT", 14, top - 16 - (i - 1) * 22)
+    b:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    local bg = b:CreateTexture(nil, "BACKGROUND"); bg:SetAllPoints(); bg:SetColorTexture(1, 1, 1, i % 2 == 0 and 0.025 or 0)
+    local hl = b:CreateTexture(nil, "HIGHLIGHT"); hl:SetAllPoints(); hl:SetColorTexture(1, 0.82, 0.3, 0.08)
+    b.dot = b:CreateTexture(nil, "ARTWORK"); b.dot:SetSize(7, 7); b.dot:SetTexture(TEX .. "Dot"); b.dot:SetPoint("LEFT", 0, 0)
+    b.cells = {}
+    for k, c in ipairs(cols) do
+      local t = fs(b, (k == 2) and F_SEMI or F_BOLD, 11)
+      t:SetPoint("LEFT", b, "LEFT", c[1] - 14, 0); t:SetWidth(c[2]); t:SetJustifyH(c[3])
+      b.cells[k] = t
+    end
+    b:SetScript("OnEnter", function(self) if self.tip then self.tip(self) end end)
+    b:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    b:SetScript("OnClick", function(self, btn) if self.click then self.click(self, btn) end end)
+    win.rows[i] = b
+  end
+  win.empty = fs(win, F_SEMI, 12); win.empty:SetPoint("TOP", 0, top - 60); win.empty:SetTextColor(0.55, 0.58, 0.64)
+  win.foot = fs(win, F_SEMI, 10); win.foot:SetPoint("BOTTOMLEFT", 18, 16); win.foot:SetTextColor(0.45, 0.48, 0.54)
+  win.count = fs(win, F_SEMI, 10); win.count:SetPoint("BOTTOMRIGHT", -18, 16); win.count:SetTextColor(0.45, 0.48, 0.54)
+  -- items: liste af { cells = {tekst...}, colors = {farve...}, dot = farve, tip = fn, click = fn }
+  win.fill = function(items)
+    win.offset = math.max(0, math.min(win.offset, #items - nRows))
+    for i = 1, nRows do
+      local b, it = win.rows[i], items[i + win.offset]
+      if it then
+        b.tip, b.click = it.tip, it.click
+        b.dot:SetShown(it.dot ~= nil)
+        if it.dot then b.dot:SetVertexColor(it.dot[1], it.dot[2], it.dot[3]) end
+        for k, t in ipairs(b.cells) do t:SetText(it.cells[k] or ""); col(t, (it.colors and it.colors[k]) or WHITE) end
+        b:Show()
+      else
+        b.tip, b.click = nil, nil
+        b:Hide()
+      end
+    end
+    win.empty:SetShown(#items == 0)
+    win.count:SetText(#items > nRows and string.format("%d-%d / %d", win.offset + 1, math.min(#items, win.offset + nRows), #items) or "")
+  end
+  win:EnableMouseWheel(true)
+  win:SetScript("OnMouseWheel", function(self, d) self.offset = self.offset - d * 3; if self.refresh then self.refresh() end end)
+  win:SetScript("OnShow", function(self) self.offset = 0; if self.refresh then self.refresh() end end)
+  return win
 end
-local logEmpty = fs(L, F_SEMI, 12); logEmpty:SetPoint("TOP", 0, -120); logEmpty:SetTextColor(0.55, 0.58, 0.64); label(logEmpty, "logEmpty")
-local logFoot = fs(L, F_SEMI, 10); logFoot:SetPoint("BOTTOMLEFT", 18, 16); logFoot:SetTextColor(0.45, 0.48, 0.54); label(logFoot, "logHint")
-local logCount = fs(L, F_SEMI, 10); logCount:SetPoint("BOTTOMRIGHT", -18, 16); logCount:SetTextColor(0.45, 0.48, 0.54)
+
+-- ---------- instance loggen (hovedvinduet, som i Nova) ----------
+local LW, LTOP, ROWS = 640, -164, 14
+local L = listWindow("InstanceETALog", nil, LW, -LTOP + 16 + ROWS * 22 + 40, LTOP, ROWS, {
+  {18, 22, "RIGHT", nil}, {46, 200, "LEFT", "colInst"}, {250, 104, "RIGHT", "colWhen"}, {358, 54, "RIGHT", "colTime"},
+  {416, 58, "RIGHT", "colXP"}, {478, 70, "RIGHT", "colGold"}, {552, 72, "RIGHT", "colLock"} })
+L.title:SetText("|cffffffffInstance|r|cffffd24aETA|r")
+label(L.empty, "logEmpty"); label(L.foot, "logHint")
+
+-- tre tal oeverst: denne time, sidste 24 timer, naeste instance
+local stats = {}
+for i, key in ipairs({"thisHour", "today", "nextFree"}) do
+  local x = 18 + (i - 1) * 206
+  local k = fs(L, F_SEMI, 11); k:SetPoint("TOPLEFT", x, -46); k:SetTextColor(0.55, 0.58, 0.64); label(k, key)
+  local v = fs(L, F_BOLD, 18); v:SetPoint("TOPLEFT", x, -62)
+  local track = L:CreateTexture(nil, "ARTWORK"); track:SetPoint("TOPLEFT", x, -88); track:SetSize(190, 3); track:SetColorTexture(1, 1, 1, 0.08)
+  local fill = L:CreateTexture(nil, "OVERLAY"); fill:SetPoint("TOPLEFT", track, "TOPLEFT"); fill:SetHeight(3)
+  stats[i] = {v = v, track = track, fill = fill}
+end
+local function bar(s, frac, c)
+  local on = type(frac) == "number"
+  s.track:SetShown(on); s.fill:SetShown(on)
+  if on then s.fill:SetColorTexture(c[1], c[2], c[3], 0.9); s.fill:SetWidth(math.max(2, 190 * math.min(1, frac))) end
+end
+
+-- knapper: indstillinger, handler, lockouts, karakterer + "vis alts"
+local btnDefs = {{"bSettings", 86}, {"bTrades", 76}, {"bLocks", 82}, {"bChars", 96}}
+local lbtn, bx = {}, 18
+for i, d in ipairs(btnDefs) do
+  local b = pill(L, nil, d[2], 22); b:SetPoint("TOPLEFT", bx, -102); label(b.text, d[1])
+  bx = bx + d[2] + 6; lbtn[i] = b
+end
+local altsBtn = CreateFrame("CheckButton", nil, L)
+altsBtn:SetSize(32, 18); altsBtn:SetPoint("TOPRIGHT", -18, -104)
+local altsOff = altsBtn:CreateTexture(nil, "ARTWORK"); altsOff:SetAllPoints(); altsOff:SetTexture(TEX .. "ToggleOff"); altsOff:SetTexCoord(0, 1, 0, 36 / 64)
+local altsOn = altsBtn:CreateTexture(nil, "ARTWORK"); altsOn:SetAllPoints(); altsOn:SetTexture(TEX .. "ToggleOn"); altsOn:SetTexCoord(0, 1, 0, 36 / 64)
+local altsT = fs(L, F_SEMI, 12); altsT:SetPoint("RIGHT", altsBtn, "LEFT", -8, 0); altsT:SetTextColor(0.85, 0.87, 0.92); label(altsT, "showAlts")
+altsBtn:SetScript("OnClick", function() DB.logAlts = not DB.logAlts; L.offset = 0; L.refresh() end)
+
+-- forklaring af farverne
+do
+  local x = 18
+  for _, d in ipairs({{AGE_HOUR, "legHour"}, {AGE_DAY, "legDay"}, {AGE_OLD, "legOld"}, {RAIDC, "legRaid"}, {ALTC, "legAlts"}}) do
+    local dot = L:CreateTexture(nil, "ARTWORK"); dot:SetSize(7, 7); dot:SetTexture(TEX .. "Dot"); dot:SetPoint("TOPLEFT", x, -138)
+    dot:SetVertexColor(d[1][1], d[1][2], d[1][3])
+    local t = fs(L, F_SEMI, 10); t:SetPoint("LEFT", dot, "RIGHT", 5, 0); t:SetTextColor(0.62, 0.65, 0.7); label(t, d[2])
+    x = x + 104
+  end
+end
+local sep = L:CreateTexture(nil, "ARTWORK"); sep:SetPoint("TOPLEFT", 14, -152); sep:SetPoint("TOPRIGHT", -14, -152); sep:SetHeight(1); sep:SetColorTexture(1, 1, 1, 0.06)
+
+local function ageColor(r)
+  if not r.leave or now() - r.enter < HOUR then return AGE_HOUR end
+  if now() - r.enter < DAY then return AGE_DAY end
+  return AGE_OLD
+end
 
 L.refresh = function()
   if not (DB and L:IsShown()) then return end
-  local list = charRuns(logAll)
-  logOffset = math.max(0, math.min(logOffset, #list - ROWS))
-  for i = 1, ROWS do
-    local b, r = logRows[i], list[i + logOffset]
-    b.run = r
-    if r then
-      local left, kind = lockLeft(r)
-      local dc = left and (kind == "h" and ORANGE or BLUE) or GREY
-      b.dot:SetVertexColor(dc[1], dc[2], dc[3])
-      local who = logAll and ("|cff8c94a3" .. (r.char:match("^[^-]+") or "") .. "|r  ") or ""
-      local cells = { who .. (r.name or "?"), r.leave and dur(now() - r.enter) or T("stillIn"), dur(runTime(r)), num(r.xp),
-        money(r.money), tostring(r.kills or 0), left and dur(left) or "" }
-      local colors = { {0.85, 0.87, 0.92}, GREY, WHITE, BLUE, GOLD, WHITE, left and (kind == "h" and ORANGE or BLUE) or GREY }
-      for k, t in ipairs(b.cells) do t:SetText(cells[k]); col(t, colors[k]) end
-      b:Show()
-    else
-      b:Hide()
+  -- tallene
+  local hN, dN, nextAt = lockout()
+  local hl, dl = DB.hourLimit or 5, DB.dayLimit or 0
+  local hc = limitColor(hN, hl)
+  stats[1].v:SetText(hl > 0 and (hN .. " / " .. hl) or tostring(hN)); col(stats[1].v, hc); bar(stats[1], hl > 0 and hN / hl or nil, hc)
+  stats[2].v:SetText(dl > 0 and (dN .. " / " .. dl) or tostring(dN)); col(stats[2].v, dl > 0 and limitColor(dN, dl) or WHITE)
+  bar(stats[2], dl > 0 and dN / dl or nil, limitColor(dN, dl))
+  local nt, nc = nextFreeText(nextAt)
+  stats[3].v:SetText(nt); col(stats[3].v, nc); bar(stats[3], nil)
+  altsOn:SetShown(DB.logAlts and true or false); altsOff:SetShown(not DB.logAlts)
+  -- runs
+  local items = {}
+  for i, r in ipairs(charRuns(DB.logAlts)) do
+    local mine = r.char == charKey()
+    local raid = r.kind == "raid"
+    local ac = ageColor(r)
+    local name = (r.name or "?")
+    if raid then name = name .. "  " .. hex(RAIDC) .. "R|r" end
+    if not mine then name = classHex(DB.chars[r.char] and DB.chars[r.char].class) .. shortName(r.char) .. "|r  " .. name end
+    local when = r.leave and string.format(T("leftAgo"), dur(now() - r.leave)) or T("stillIn")
+    local left, kind = lockLeft(r)
+    items[#items + 1] = {
+      dot = (not mine) and ALTC or (raid and RAIDC or ac),
+      cells = { tostring(i), name, when, dur(runTime(r)), num(r.xp), money(r.money), left and dur(left) or "" },
+      colors = { GREY, {0.88, 0.9, 0.94}, ac, WHITE, BLUE, GOLD, left and (kind == "h" and ORANGE or GOLD) or GREY },
+      tip = function(self) runTip(self, r) end,
+      click = function(_, btn)
+        if btn == "RightButton" and IsShiftKeyDown() then
+          if r == cur then cur = nil; DB.charCur[charKey()] = nil end
+          removeRun(r); say(string.format(T("deleted"), (r.name or "?") .. " (" .. date("%d/%m %H:%M", r.enter) .. ")"))
+          GameTooltip:Hide(); L.refresh(); refresh()
+        elseif btn == "LeftButton" and postStats then
+          postStats(r)
+        end
+      end,
+    }
+  end
+  L.fill(items)
+end
+
+-- ---------- handelsloggen ----------
+local TWin = listWindow("InstanceETATrades", "tradesTitle", 560, 420, -50, 14, {
+  {18, 92, "LEFT", "colDate"}, {114, 120, "LEFT", "colWho"}, {238, 90, "RIGHT", "colGave"}, {332, 90, "RIGHT", "colGot"}, {430, 112, "LEFT", "colWhere"} })
+label(TWin.empty, "noTrades"); label(TWin.foot, "tradesFoot")
+TWin.refresh = function()
+  if not (DB and TWin:IsShown()) then return end
+  local items = {}
+  for _, x in ipairs(DB.trades) do
+    items[#items + 1] = {
+      dot = (x.char ~= charKey()) and ALTC or nil,
+      cells = { date("%d/%m %H:%M", x.at), x.who or "?", (x.give or 0) > 0 and money(x.give) or "", (x.get or 0) > 0 and money(x.get) or "",
+        (x.char ~= charKey() and (shortName(x.char) .. ", ") or "") .. (x.inst or x.zone or "") },
+      colors = { GREY, WHITE, ORANGE, GREEN, GREY },
+    }
+  end
+  TWin.fill(items)
+end
+
+-- ---------- raid lockouts for alle karakterer ----------
+local KWin = listWindow("InstanceETALockouts", "locksTitle", 460, 340, -50, 10, {
+  {18, 130, "LEFT", "colChar"}, {152, 170, "LEFT", "colInst"}, {326, 116, "RIGHT", "colResets"} })
+label(KWin.empty, "noLocks")
+KWin.refresh = function()
+  if not (DB and KWin:IsShown()) then return end
+  local items = {}
+  local keys = {}
+  for key in pairs(DB.chars) do keys[#keys + 1] = key end
+  table.sort(keys)
+  for _, key in ipairs(keys) do
+    local c = DB.chars[key]
+    for _, s in ipairs(c.saved or {}) do
+      if s.resetAt and s.resetAt > now() then
+        items[#items + 1] = { dot = RAIDC, cells = { classHex(c.class) .. shortName(key) .. "|r", s.name, dur(s.resetAt - now()) },
+          colors = { WHITE, WHITE, GREY } }
+      end
     end
   end
-  logEmpty:SetShown(#list == 0)
-  logCount:SetText(#list > 0 and string.format("%d-%d / %d", logOffset + 1, math.min(#list, logOffset + ROWS), #list) or "")
-  local on, off = {1, 0.82, 0.4}, {0.55, 0.58, 0.64}
-  local a, b2 = logAll and off or on, logAll and on or off
-  tabA:paint(a[1], a[2], a[3]); tabA.bg:SetAlpha(logAll and 0.45 or 1)
-  tabB:paint(b2[1], b2[2], b2[3]); tabB.bg:SetAlpha(logAll and 1 or 0.45)
+  KWin.fill(items)
 end
-L:EnableMouseWheel(true)
-L:SetScript("OnMouseWheel", function(_, d) logOffset = logOffset - d * 3; L.refresh() end)
-L:SetScript("OnShow", function() logOffset = 0; L.refresh() end)
-tabA:SetScript("OnClick", function() logAll = false; logOffset = 0; L.refresh() end)
-tabB:SetScript("OnClick", function() logAll = true; logOffset = 0; L.refresh() end)
+
+-- ---------- dine karakterer: rested XP, guld, holdbarhed, tasker, erhverv ----------
+local CWin = listWindow("InstanceETAChars", "charsTitle", 640, 440, -50, 14, {
+  {18, 128, "LEFT", "colChar"}, {150, 40, "RIGHT", "colLevel"}, {194, 108, "RIGHT", "colRested"}, {306, 92, "RIGHT", "colGoldC"},
+  {402, 70, "RIGHT", "colDur"}, {476, 60, "RIGHT", "colBags"}, {540, 84, "RIGHT", "colSeen"} })
+local function restedNow(c)
+  -- rested XP vokser mens du er logget ud: 5% af et level pr. 8 timer paa et kro/i en by, ellers en fjerdedel. Hoejst 150%.
+  if not c.max or c.max <= 0 or (c.level or 0) >= (MAX_PLAYER_LEVEL or 60) then return nil end
+  local r = c.rested or 0
+  if c.key ~= charKey() and c.seen then
+    local rate = 0.05 * c.max / (8 * HOUR) * (c.resting and 1 or 0.25)
+    r = r + (now() - c.seen) * rate
+  end
+  return math.min(r, 1.5 * c.max)
+end
+CWin.refresh = function()
+  if not (DB and CWin:IsShown()) then return end
+  local keys, total = {}, 0
+  for key, c in pairs(DB.chars) do c.key = key; keys[#keys + 1] = key; total = total + (c.money or 0) end
+  table.sort(keys, function(a, b) return (DB.chars[a].level or 0) > (DB.chars[b].level or 0) or ((DB.chars[a].level or 0) == (DB.chars[b].level or 0) and a < b) end)
+  local items = {}
+  for _, key in ipairs(keys) do
+    local c = DB.chars[key]
+    local rn = restedNow(c)
+    local rested = rn and string.format("%d%%  ·  %.1f", math.floor(rn / c.max * 100 + 0.5), rn / c.max * 20) or "-"
+    local online = key == charKey()
+    items[#items + 1] = {
+      dot = c.resting and GREEN or GREY,
+      cells = { classHex(c.class) .. shortName(key) .. "|r", tostring(c.level or "?"), rested, money(c.money or 0),
+        c.dur and (c.dur .. "%") or "", c.bags and tostring(c.bags) or "", online and T("online") or (c.seen and string.format(T("ago"), dur(now() - c.seen)) or "") },
+      colors = { WHITE, WHITE, BLUE, GOLD, (c.dur and c.dur < 30) and RED or WHITE, (c.bags and c.bags < 4) and ORANGE or WHITE, online and GREEN or GREY },
+      tip = function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:AddLine(key, 1, 0.82, 0.3)
+        GameTooltip:AddDoubleLine(T("restedState"), T(c.resting and "resting" or "notResting"), 0.75, 0.78, 0.84, 1, 1, 1)
+        if rn then GameTooltip:AddDoubleLine(T("colRested"), num(rn) .. " XP", 0.75, 0.78, 0.84, 0.62, 0.82, 1) end
+        if c.profs and #c.profs > 0 then
+          GameTooltip:AddLine(" "); GameTooltip:AddLine(T("profs"), 1, 0.82, 0.4)
+          for _, p in ipairs(c.profs) do GameTooltip:AddDoubleLine(p.name, p.rank .. " / " .. p.max, 0.85, 0.87, 0.92, 1, 1, 1) end
+        end
+        local any
+        for _, s in ipairs(c.saved or {}) do
+          if s.resetAt and s.resetAt > now() then
+            if not any then GameTooltip:AddLine(" "); GameTooltip:AddLine(T("raidLocks"), 1, 0.82, 0.4); any = true end
+            GameTooltip:AddDoubleLine(s.name, string.format(T("resetsIn"), dur(s.resetAt - now())), 0.85, 0.87, 0.92, 0.55, 0.58, 0.64)
+          end
+        end
+        GameTooltip:Show()
+      end,
+    }
+  end
+  CWin.fill(items)
+  CWin.foot:SetText(T("totalGold") .. ":  " .. money(total))
+end
+
+lbtn[1]:SetScript("OnClick", function() local s = _G.InstanceETASettings; s:SetShown(not s:IsShown()) end)
+lbtn[2]:SetScript("OnClick", function() TWin:SetShown(not TWin:IsShown()) end)
+lbtn[3]:SetScript("OnClick", function() KWin:SetShown(not KWin:IsShown()) end)
+lbtn[4]:SetScript("OnClick", function() CWin:SetShown(not CWin:IsShown()) end)
 logBtn:SetScript("OnClick", function() L:SetShown(not L:IsShown()) end)
+local function refreshWindows() L.refresh(); TWin.refresh(); KWin.refresh(); CWin.refresh() end
 
 -- ---------- indstillinger ----------
 local S = CreateFrame("Frame", "InstanceETASettings", UIParent)
@@ -660,7 +862,7 @@ end
 local mmb  -- minimap knappen, laves laengere nede
 local L0, R0 = 0, COL
 section(L0, -52, "sWindow")
-toggle(L0, -74, "showWin", "hidden", true)  -- gemmes som DB.hidden, saa knappen viser det modsatte
+toggle(L0, -74, "compact", "hidden", true)  -- gemmes som DB.hidden, saa knappen viser det modsatte
 toggle(L0, -100, "lockWin", "locked")
 toggle(L0, -126, "minimap", "showMinimap")
 slider(L0, -156, "recentN", 0, 10, "recentN", function(v) return v == 0 and T("off") or tostring(v) end)
@@ -725,9 +927,9 @@ local function toggleWindow()
   refresh()
 end
 mmb:SetScript("OnClick", function(_, btn)
-  if IsShiftKeyDown and IsShiftKeyDown() then L:SetShown(not L:IsShown())
+  if IsShiftKeyDown and IsShiftKeyDown() then toggleWindow()
   elseif btn == "RightButton" then S:SetShown(not S:IsShown())
-  else toggleWindow() end
+  else L:SetShown(not L:IsShown()) end
 end)
 mmb:SetScript("OnEnter", function(self)
   GameTooltip:SetOwner(self, "ANCHOR_LEFT")
@@ -772,7 +974,7 @@ applyAll = function()
   f:SetShown(not DB.hidden)
   mmb:SetShown(DB.showMinimap)
   placeButton()
-  refresh(); L.refresh()
+  refresh(); refreshWindows()
 end
 
 -- ---------- runs: ind og ud af instances ----------
@@ -806,6 +1008,14 @@ local function statsText(r, plain)
   local n = r.char == charKey() and runsToLevel(r)
   if n then s = s .. ", " .. n .. " " .. (n == 1 and T("runWord") or T("runsWord")) .. " > " .. ((UnitLevel("player") or 0) + 1) end
   return s
+end
+
+postStats = function(r)
+  if IsInGroup and IsInGroup() and not (IsInRaid and IsInRaid()) then
+    pcall(SendChatMessage, "InstanceETA: " .. statsText(r, true), "PARTY")
+  else
+    say(statsText(r))
+  end
 end
 
 local function closeRun(quiet)
@@ -1018,10 +1228,11 @@ local function onTrade(event, a1, a2)
     local msg = (type(a2) == "string") and a2 or a1
     if trade.who and ERR_TRADE_COMPLETE and msg == ERR_TRADE_COMPLETE then
       if (trade.give or 0) > 0 or (trade.get or 0) > 0 then
-        local x = { who = trade.who, give = trade.give or 0, get = trade.get or 0, at = now(), char = charKey(), inst = cur and cur.name }
+        local x = { who = trade.who, give = trade.give or 0, get = trade.get or 0, at = now(), char = charKey(), inst = cur and cur.name, zone = GetRealZoneText and GetRealZoneText() }
         table.insert(DB.trades, 1, x)
         while #DB.trades > MAX_TRADES do table.remove(DB.trades) end
         if cur then cur.trades = cur.trades or {}; table.insert(cur.trades, x) end
+        TWin.refresh()
         if DB.tradeMsg then
           if x.give > 0 then say(string.format(T("gave"), money(x.give), x.who)) end
           if x.get > 0 then say(string.format(T("got"), money(x.get), x.who)) end
@@ -1050,11 +1261,59 @@ local function saveLockouts()
   c.saved = list
 end
 
+-- ---------- dine karakterer ----------
+local function updateChar()
+  local key = charKey()
+  DB.chars[key] = DB.chars[key] or {}
+  local c = DB.chars[key]
+  local _, class = UnitClass("player"); c.class = class
+  c.level = UnitLevel("player"); c.seen = now()
+  c.money = GetMoney and GetMoney() or c.money
+  c.max = UnitXPMax("player"); c.xp = UnitXP("player")
+  c.rested = GetXPExhaustion and GetXPExhaustion() or 0
+  c.resting = IsResting and IsResting() and true or false
+  -- holdbarhed: det laveste stykke udstyr i procent
+  local low
+  for slot = 1, 18 do
+    local cv, mv
+    if GetInventoryItemDurability then cv, mv = GetInventoryItemDurability(slot) end
+    if cv and mv and mv > 0 and not secret(cv) then
+      local pct = math.floor(cv / mv * 100 + 0.5)
+      if not low or pct < low then low = pct end
+    end
+  end
+  c.dur = low
+  local free = 0
+  for bag = 0, 4 do
+    local n = (C_Container and C_Container.GetContainerNumFreeSlots and C_Container.GetContainerNumFreeSlots(bag))
+      or (GetContainerNumFreeSlots and GetContainerNumFreeSlots(bag)) or 0
+    free = free + (tonumber(n) or 0)
+  end
+  c.bags = free
+end
+
+-- erhverv fra skill-listen (GAET: overskrifterne hedder "Professions" og "Secondary Skills", eller spillets egne oversaettelser)
+local function updateProfs()
+  local c = DB.chars[charKey()]
+  if not c or not GetNumSkillLines then return end
+  local heads = { [TRADE_SKILLS or "Professions"] = true, [SECONDARY_SKILLS or "Secondary Skills"] = true, Professions = true, ["Secondary Skills"] = true }
+  local list, head = {}, nil
+  for i = 1, GetNumSkillLines() do
+    local name, isHeader, _, rank, _, _, maxRank = GetSkillLineInfo(i)
+    if isHeader then head = name
+    elseif name and heads[head or ""] and rank and maxRank and maxRank > 1 then
+      list[#list + 1] = { name = name, rank = rank, max = maxRank }
+    end
+  end
+  c.profs = list
+end
+
 -- ---------- haendelser ----------
 local E = CreateFrame("Frame")
 for _, ev in ipairs({"ADDON_LOADED", "PLAYER_ENTERING_WORLD", "ZONE_CHANGED_NEW_AREA", "PLAYER_LOGOUT", "PLAYER_XP_UPDATE",
   "PLAYER_LEVEL_UP", "CHAT_MSG_MONEY", "CHAT_MSG_COMBAT_FACTION_CHANGE", "CHAT_MSG_COMBAT_XP_GAIN", "CHAT_MSG_SYSTEM",
   "GROUP_ROSTER_UPDATE", "PLAYER_TARGET_CHANGED", "UPDATE_MOUSEOVER_UNIT", "NAME_PLATE_UNIT_ADDED", "UPDATE_INSTANCE_INFO",
+  "PLAYER_MONEY", "PLAYER_UPDATE_RESTING", "UPDATE_EXHAUSTION", "BAG_UPDATE_DELAYED", "UPDATE_INVENTORY_DURABILITY", "SKILL_LINES_CHANGED",
   "TRADE_SHOW", "TRADE_CLOSED", "TRADE_REQUEST_CANCEL", "TRADE_MONEY_CHANGED", "TRADE_ACCEPT_UPDATE", "PLAYER_TRADE_MONEY", "UI_INFO_MESSAGE"}) do
   pcall(E.RegisterEvent, E, ev)
 end
@@ -1065,6 +1324,8 @@ E:SetScript("OnEvent", function(_, event, a1, a2)
     InstanceETADB = InstanceETADB or {}
     DB = InstanceETADB
     for k, v in pairs(defaults) do if DB[k] == nil then DB[k] = v end end
+    -- 0.2: loggen er hovedvinduet som i Nova, det lille vindue er valgfrit
+    if (DB.ver or 1) < 2 then DB.hidden = true; DB.ver = 2 end
     DB.runs = DB.runs or {}; DB.chars = DB.chars or {}; DB.trades = DB.trades or {}; DB.charCur = DB.charCur or {}
     if not DB.langSet then
       local loc = GetLocale and GetLocale() or "enUS"
@@ -1077,10 +1338,7 @@ E:SetScript("OnEvent", function(_, event, a1, a2)
     updateLabels()
     applyAll()
   elseif event == "PLAYER_ENTERING_WORLD" then
-    local key = charKey()
-    DB.chars[key] = DB.chars[key] or {}
-    local c = DB.chars[key]
-    local _, class = UnitClass("player"); c.class = class; c.level = UnitLevel("player"); c.seen = now()
+    updateChar(); updateProfs()
     if RequestRaidInfo then pcall(RequestRaidInfo) end
     checkZone(a1, a2)
   elseif event == "ZONE_CHANGED_NEW_AREA" then
@@ -1088,6 +1346,7 @@ E:SetScript("OnEvent", function(_, event, a1, a2)
   elseif event == "PLAYER_LOGOUT" then
     -- husk hvilken run du var i, saa et reload eller login inde i instancen fortsaetter den
     DB.charCur[charKey()] = cur and cur.id or nil
+    updateChar()
   elseif event == "PLAYER_XP_UPDATE" or event == "PLAYER_LEVEL_UP" then
     onXP()
     local c = DB.chars[charKey()]; if c then c.level = UnitLevel("player") end
@@ -1099,7 +1358,10 @@ E:SetScript("OnEvent", function(_, event, a1, a2)
   elseif event == "PLAYER_TARGET_CHANGED" then if cur then sawGUID(UnitGUID("target")) end
   elseif event == "UPDATE_MOUSEOVER_UNIT" then if cur then sawGUID(UnitGUID("mouseover")) end
   elseif event == "NAME_PLATE_UNIT_ADDED" then if cur and a1 then sawGUID(UnitGUID(a1)) end
-  elseif event == "UPDATE_INSTANCE_INFO" then saveLockouts()
+  elseif event == "UPDATE_INSTANCE_INFO" then saveLockouts(); KWin.refresh()
+  elseif event == "SKILL_LINES_CHANGED" then updateProfs()
+  elseif event == "PLAYER_MONEY" or event == "PLAYER_UPDATE_RESTING" or event == "UPDATE_EXHAUSTION" or event == "BAG_UPDATE_DELAYED"
+    or event == "UPDATE_INVENTORY_DURABILITY" then updateChar()
   else onTrade(event, a1, a2) end
 end)
 
@@ -1117,7 +1379,7 @@ local function tick(el)
   end
   wasLocked = locked
   refresh()
-  if L:IsShown() then L.refresh() end
+  refreshWindows()
 end
 if C_Timer and C_Timer.NewTicker then
   local last = clock()
@@ -1141,17 +1403,10 @@ SlashCmdList.INSTANCEETA = function(msg)
     if r == cur then cur = nil; DB.charCur[charKey()] = nil end
     removeRun(r); say(string.format(T("undone"), r.name or "?"))
     refresh(); L.refresh()
-  elseif msg == "trades" or msg == "handler" then
-    say(T("tradesHead"))
-    if #DB.trades == 0 then print(T("noTrades")) end
-    for i = 1, math.min(20, #DB.trades) do
-      local x = DB.trades[i]
-      local s = date("%d/%m %H:%M", x.at) .. "  "
-      if x.give > 0 then s = s .. string.format(T("gave"), money(x.give), x.who) end
-      if x.get > 0 then s = s .. (x.give > 0 and ",  " or "") .. string.format(T("got"), money(x.get), x.who) end
-      if x.inst then s = s .. "  |cff8c94a3(" .. x.inst .. ")|r" end
-      print(s)
-    end
+  elseif msg == "trades" or msg == "handler" then TWin:SetShown(not TWin:IsShown())
+  elseif msg == "chars" or msg == "karakterer" then CWin:SetShown(not CWin:IsShown())
+  elseif msg == "lockouts" then KWin:SetShown(not KWin:IsShown())
+  elseif msg == "compact" or msg == "lille" then toggleWindow()
   elseif msg == "reset" then
     DB.point = nil
     f:ClearAllPoints(); f:SetPoint("CENTER", UIParent, "CENTER", 0, 120)
@@ -1162,6 +1417,6 @@ SlashCmdList.INSTANCEETA = function(msg)
   elseif msg == "help" or msg == "hjaelp" then
     say(T("help"))
   else
-    toggleWindow()
+    L:SetShown(not L:IsShown())
   end
 end

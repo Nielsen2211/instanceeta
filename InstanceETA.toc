@@ -3,7 +3,7 @@
 ## Notes: Tracks your instance lockouts: how many you have entered this hour and today, when the next one is free, and a log of every run with time, XP, gold and kills.
 ## Notes-daDK: Holder styr på dine instance lockouts: hvor mange du har været i denne time og i dag, hvornår den næste er fri, og en log over hver run med tid, XP, guld og kills.
 ## Author: Rasmus
-## Version: 0.1.0
+## Version: 0.2.0
 ## IconTexture: Interface\AddOns\InstanceETA\Textures\Logo
 ## SavedVariables: InstanceETADB
 InstanceETA.lua
