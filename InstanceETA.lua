@@ -12,6 +12,27 @@ local ADDON = "InstanceETA"
 local NAME = "InstanceETA"
 local PATH = "Interface\\AddOns\\InstanceETA\\"
 local TEX = PATH .. "Textures\\"
+
+-- one corner shape for every box in the ETA family: Round.tga cut in nine, so the corners keep their
+-- shape at any size. round(parent, layer, r, g, b, a) covers the parent with a rounded box.
+local function round(parent, layer, r, g, b, a, radius)
+  local rad, parts = radius or 6, {}
+  for i, c in ipairs({ { 0, .25, 0, .25 }, { .75, 1, 0, .25 }, { 0, .25, .75, 1 }, { .75, 1, .75, 1 },
+                       { .25, .75, 0, .25 }, { .25, .75, .75, 1 }, { 0, .25, .25, .75 }, { .75, 1, .25, .75 }, { .25, .75, .25, .75 } }) do
+    local t = parent:CreateTexture(nil, layer or "BACKGROUND")
+    t:SetTexture(TEX .. "Round"); t:SetTexCoord(c[1], c[2], c[3], c[4]); t:SetVertexColor(r, g, b, a or 1)
+    parts[i] = t
+  end
+  local tl, tr, bl, br, top, bot, left, right, mid = unpack(parts)
+  for i = 1, 4 do parts[i]:SetSize(rad, rad) end
+  tl:SetPoint("TOPLEFT"); tr:SetPoint("TOPRIGHT"); bl:SetPoint("BOTTOMLEFT"); br:SetPoint("BOTTOMRIGHT")
+  top:SetPoint("TOPLEFT", tl, "TOPRIGHT"); top:SetPoint("BOTTOMRIGHT", tr, "BOTTOMLEFT")
+  bot:SetPoint("TOPLEFT", bl, "TOPRIGHT"); bot:SetPoint("BOTTOMRIGHT", br, "BOTTOMLEFT")
+  left:SetPoint("TOPLEFT", tl, "BOTTOMLEFT"); left:SetPoint("BOTTOMRIGHT", bl, "TOPRIGHT")
+  right:SetPoint("TOPLEFT", tr, "BOTTOMLEFT"); right:SetPoint("BOTTOMRIGHT", br, "TOPRIGHT")
+  mid:SetPoint("TOPLEFT", tl, "BOTTOMRIGHT"); mid:SetPoint("BOTTOMRIGHT", br, "TOPLEFT")
+  return parts
+end
 local LOGO = TEX .. "Logo"
 local F_SEMI = PATH .. "Fonts\\Inter-SemiBold.ttf"
 local F_BOLD = PATH .. "Fonts\\Inter-Bold.ttf"
@@ -614,8 +635,8 @@ local function listWindow(name, titleKey, w, h, top, nRows, cols)
     local b = CreateFrame("Button", nil, win)
     b:SetSize(w - 28, 22); b:SetPoint("TOPLEFT", 14, top - 16 - (i - 1) * 22)
     b:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-    local bg = b:CreateTexture(nil, "BACKGROUND"); bg:SetAllPoints(); bg:SetColorTexture(1, 1, 1, i % 2 == 0 and 0.025 or 0)
-    local hl = b:CreateTexture(nil, "HIGHLIGHT"); hl:SetAllPoints(); hl:SetColorTexture(1, 1, 1, 0.04)
+    if i % 2 == 0 then round(b, "BACKGROUND", 1, 1, 1, 0.025) end
+    round(b, "HIGHLIGHT", 1, 1, 1, 0.04)
     b.dot = b:CreateTexture(nil, "ARTWORK"); b.dot:SetSize(7, 7); b.dot:SetTexture(TEX .. "Dot"); b.dot:SetPoint("LEFT", 0, 0)
     b.cells = {}
     for k, c in ipairs(cols) do
