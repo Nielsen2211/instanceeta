@@ -1004,6 +1004,15 @@ do
   local bg = mmb:CreateTexture(nil, "BACKGROUND"); bg:SetSize(20, 20); bg:SetPoint("TOPLEFT", 7, -5); bg:SetTexture("Interface\\Minimap\\UI-Minimap-Background")
   local icon = mmb:CreateTexture(nil, "ARTWORK"); icon:SetSize(21, 21); icon:SetPoint("TOPLEFT", 5, -5); icon:SetTexture(LOGO)
   local border = mmb:CreateTexture(nil, "OVERLAY"); border:SetSize(53, 53); border:SetPoint("TOPLEFT"); border:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
+  -- look like a LibDBIcon button: centred like the others in minimap bags, and skins such as
+  -- DarkMode (which dress every "LibDBIcon10_" button, ring included) dress this one too
+  bg:ClearAllPoints(); icon:ClearAllPoints(); border:ClearAllPoints(); border:SetPoint("TOPLEFT")
+  if AddonCompartmentFrame then
+    border:SetSize(50, 50); bg:SetSize(24, 24); bg:SetPoint("CENTER"); icon:SetSize(18, 18); icon:SetPoint("CENTER")
+  else
+    border:SetSize(53, 53); bg:SetSize(20, 20); bg:SetPoint("TOPLEFT", 7, -5); icon:SetSize(17, 17); icon:SetPoint("TOPLEFT", 7, -6)
+  end
+  if _G["LibDBIcon10_InstanceETA"] == nil then _G["LibDBIcon10_InstanceETA"] = mmb end
 end
 local atan2 = math.atan2 or function(y, x) return math.atan(y, x) end
 local function placeButton()
